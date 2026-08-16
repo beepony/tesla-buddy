@@ -1,0 +1,17 @@
+{
+  "name": "tesla-companion",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node --env-file=.env --watch apps/api/src/server.mjs",
+    "start": "node --env-file=.env apps/api/src/server.mjs",
+    "test": "node --test apps/api/test/*.test.mjs"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "dependencies": {
+    "pg": "^8.16.3"
+  }
+}

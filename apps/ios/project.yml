@@ -1,0 +1,26 @@
+name: TeslaCompanion
+options:
+  minimumXcodeGenVersion: 2.41.0
+settings:
+  base:
+    SWIFT_VERSION: 6.0
+    IPHONEOS_DEPLOYMENT_TARGET: 17.0
+targets:
+  TeslaCompanion:
+    type: application
+    platform: iOS
+    sources:
+      - path: Sources
+      - path: Assets.xcassets
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.personal.teslacompanion
+        PRODUCT_NAME: Tesla Buddy
+        CODE_SIGN_STYLE: Automatic
+        DEVELOPMENT_TEAM: 5U49SVG9V4
+        GENERATE_INFOPLIST_FILE: NO
+        INFOPLIST_FILE: Supporting/Info.plist
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        TARGETED_DEVICE_FAMILY: 1
+    scheme:
+      testTargets: []
