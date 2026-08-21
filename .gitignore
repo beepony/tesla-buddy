@@ -7,3 +7,4 @@ node_modules/
 DerivedData/
 *.xcuserstate
 xcuserdata/
+apps/ios/Sources/LocalSecrets.swift

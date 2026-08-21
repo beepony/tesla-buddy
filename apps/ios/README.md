@@ -10,4 +10,6 @@ xcodegen generate
 open TeslaCompanion.xcodeproj
 ```
 
-在 iOS Simulator 中，`127.0.0.1` 指向模拟器自身，不是 Mac mini。运行时应将 `TeslaCompanionApp.swift` 中的 API 基址改为 Mac mini 的局域网 IP 或通过模拟器的本机映射配置；在实现设备配对前，API 必须保持在受信任网络中。
+真机默认先访问 `http://m4.local:8787`，局域网不可用时自动回退到 Tailscale HTTPS 地址。在 iOS Simulator 中使用 `127.0.0.1:8787`。
+
+首次构建前，将 `Config/LocalSecrets.swift.example` 复制为 `Sources/LocalSecrets.swift`，并把 `apiToken` 设置为与根目录 `.env` 中 `TESLA_BUDDY_API_TOKEN` 完全相同的高强度随机值。真实的两个配置文件均不得提交到 Git。

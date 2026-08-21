@@ -1,13 +1,25 @@
+import { timingSafeEqual } from "node:crypto";
+
 const json = (response, status, value) => {
   response.writeHead(status, { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" });
   response.end(JSON.stringify(value));
 };
 
-export function createApp(repository, clock = () => new Date()) {
+const isAuthorized = (request, apiToken) => {
+  if (!apiToken) return true;
+  const actual = Buffer.from(request.headers.authorization ?? "");
+  const expected = Buffer.from(`Bearer ${apiToken}`);
+  return actual.length === expected.length && timingSafeEqual(actual, expected);
+};
+
+export function createApp(repository, clock = () => new Date(), apiToken = process.env.TESLA_BUDDY_API_TOKEN) {
   return async (request, response) => {
     const url = new URL(request.url, `http://${request.headers.host ?? "localhost"}`);
     if (request.method !== "GET") return json(response, 405, { error: "method_not_allowed" });
     if (url.pathname === "/health") return json(response, 200, { status: "ok", checkedAt: clock().toISOString(), dataSource: process.env.DATA_SOURCE ?? "mock" });
+    if (url.pathname.startsWith("/v1/") && !isAuthorized(request, apiToken)) {
+      return json(response, 401, { error: "unauthorized" });
+    }
     if (url.pathname === "/v1/vehicles") return json(response, 200, { data: await repository.listVehicles() });
 
     const overview = url.pathname.match(/^\/v1\/vehicles\/([^/]+)\/overview$/);

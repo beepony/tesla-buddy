@@ -10,10 +10,10 @@ final class TeslaCompanionAppDelegate: NSObject, UIApplicationDelegate {
         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
     ) -> Bool {
         #if targetEnvironment(simulator)
-        let rootView = ChargesView(apiClient: APIClient(baseURL: apiBaseURL))
+        let rootView = ChargesView(apiClient: APIClient(baseURLs: apiBaseURLs, apiToken: TeslaBuddySecrets.apiToken))
         #else
         let rootView = ContentView(
-            apiClient: APIClient(baseURL: apiBaseURL)
+            apiClient: APIClient(baseURLs: apiBaseURLs, apiToken: TeslaBuddySecrets.apiToken)
         )
         #endif
         let window = UIWindow(frame: UIScreen.main.bounds)
@@ -23,11 +23,14 @@ final class TeslaCompanionAppDelegate: NSObject, UIApplicationDelegate {
         return true
     }
 
-    private var apiBaseURL: URL {
+    private var apiBaseURLs: [URL] {
         #if targetEnvironment(simulator)
-        URL(string: "http://127.0.0.1:8787")!
+        [URL(string: "http://127.0.0.1:8787")!]
         #else
-        URL(string: "https://m4.taila2745f.ts.net")!
+        [
+            URL(string: "http://m4.local:8787")!,
+            URL(string: "https://m4.taila2745f.ts.net")!
+        ]
         #endif
     }
 }

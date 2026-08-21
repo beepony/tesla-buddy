@@ -113,7 +113,7 @@ struct OverviewView: View {
         guard let urlError = error as? URLError else { return error.localizedDescription }
         switch urlError.code {
         case .notConnectedToInternet, .cannotFindHost, .cannotConnectToHost, .networkConnectionLost:
-            return "无法连接家中的 Mac mini。请确认 iPhone 与 Mac mini 连接同一个 Wi‑Fi，并在设置中允许 Tesla Companion 访问本地网络。"
+            return "无法连接家中的 Mac mini。请确认两台设备在同一 Wi‑Fi；外出时请连接 Tailscale。"
         default:
             return error.localizedDescription
         }
@@ -151,7 +151,7 @@ private struct ConnectionStateView: View {
                 .tint(CompanionTheme.accent)
             }
 
-            Label("请确认 iPhone 上的 Tailscale 已连接", systemImage: "lock.shield")
+            Label("同一 Wi‑Fi 自动直连，外出时使用 Tailscale", systemImage: "lock.shield")
                 .font(.footnote)
                 .foregroundStyle(.secondary)
         }

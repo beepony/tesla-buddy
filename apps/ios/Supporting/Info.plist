@@ -19,7 +19,14 @@
 	<key>CFBundleShortVersionString</key>
 	<string>1.0</string>
     <key>CFBundleVersion</key>
-    <string>18</string>
+    <string>19</string>
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>用于在同一 Wi-Fi 下直接连接家中的 Mac mini，读取 TeslaMate 车辆数据。</string>
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsLocalNetworking</key>
+		<true/>
+	</dict>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
     <key>UILaunchScreen</key>

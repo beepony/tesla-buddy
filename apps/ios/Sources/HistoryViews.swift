@@ -69,7 +69,7 @@ struct DrivesView: View {
             guard let vehicle = try await VehicleLoader(apiClient: apiClient).firstVehicle() else { message = "尚未发现车辆"; return }
             drives = try await apiClient.get("/v1/vehicles/\(vehicle.id)/drives", as: [Drive].self)
             message = nil
-        } catch { message = "无法读取 Mac mini 数据。请确认 iPhone 上的 Tailscale 已连接，然后重试。" }
+        } catch { message = "无法读取 Mac mini 数据。请确认两台设备在同一 Wi‑Fi；外出时请连接 Tailscale。" }
     }
 }
 
@@ -228,7 +228,7 @@ struct ChargesView: View {
             guard let vehicle = try await VehicleLoader(apiClient: apiClient).firstVehicle() else { message = "尚未发现车辆"; return }
             charges = try await apiClient.get("/v1/vehicles/\(vehicle.id)/charges", as: [Charge].self)
             message = nil
-        } catch { message = "无法读取 Mac mini 数据。请确认 iPhone 上的 Tailscale 已连接，然后重试。" }
+        } catch { message = "无法读取 Mac mini 数据。请确认两台设备在同一 Wi‑Fi；外出时请连接 Tailscale。" }
     }
 }
 

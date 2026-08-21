@@ -17,7 +17,7 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: com.personal.teslacompanion
         PRODUCT_NAME: Tesla Buddy
         CODE_SIGN_STYLE: Automatic
-        DEVELOPMENT_TEAM: 5U49SVG9V4
+        DEVELOPMENT_TEAM: XP22J2NPC5
         GENERATE_INFOPLIST_FILE: NO
         INFOPLIST_FILE: Supporting/Info.plist
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
