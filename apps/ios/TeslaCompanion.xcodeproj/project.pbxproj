@@ -13,12 +13,14 @@
 		7F390D1467E5F5C878136292 /* TeslaCompanionApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16EE0B553ECD7098F74EDDCF /* TeslaCompanionApp.swift */; };
 		901ABB55C25DD8B9CC2939C9 /* APIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31200F650E392257DB7716C8 /* APIClient.swift */; };
 		D60FFB431A62AA060E18F124 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4DABBE985CD82214F0B74EA /* ContentView.swift */; };
+		DE8C4E1A721E1D649E7A0A0A /* ParkingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 276783E8ED68BBFEBEBEE355 /* ParkingView.swift */; };
 		DFF5B0288494DF0EA5B672BC /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = DF57F0F4385B74FE5D2D1A6E /* Assets.xcassets */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		054E24729D0DA95F0199FB1F /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
 		16EE0B553ECD7098F74EDDCF /* TeslaCompanionApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TeslaCompanionApp.swift; sourceTree = "<group>"; };
+		276783E8ED68BBFEBEBEE355 /* ParkingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ParkingView.swift; sourceTree = "<group>"; };
 		31200F650E392257DB7716C8 /* APIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIClient.swift; sourceTree = "<group>"; };
 		3B0E647445DB91609884C363 /* LocalSecrets.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalSecrets.swift; sourceTree = "<group>"; };
 		CA61C8CD90F25483C73760B5 /* TeslaCompanion.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = TeslaCompanion.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -44,6 +46,7 @@
 				E93CFA84A8260F247AA29B33 /* HistoryViews.swift */,
 				3B0E647445DB91609884C363 /* LocalSecrets.swift */,
 				054E24729D0DA95F0199FB1F /* Models.swift */,
+				276783E8ED68BBFEBEBEE355 /* ParkingView.swift */,
 				16EE0B553ECD7098F74EDDCF /* TeslaCompanionApp.swift */,
 			);
 			path = Sources;
@@ -134,6 +137,7 @@
 				76610E0F2034DFF7B9E76806 /* HistoryViews.swift in Sources */,
 				576756CB731802E731588685 /* LocalSecrets.swift in Sources */,
 				139661B4C5A0AD4D5DB08ED2 /* Models.swift in Sources */,
+				DE8C4E1A721E1D649E7A0A0A /* ParkingView.swift in Sources */,
 				7F390D1467E5F5C878136292 /* TeslaCompanionApp.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

@@ -47,6 +47,17 @@ struct DriveLocation: Decodable {
     let longitude: Double
 }
 
+struct ParkingSession: Decodable, Identifiable {
+    let id: String
+    let startedAt: Date
+    let endedAt: Date?
+    let durationMinutes: Double
+    let isActive: Bool
+    let locationKey: String
+    let locationName: String
+    let location: DriveLocation?
+}
+
 struct Charge: Decodable, Identifiable {
     let id: String
     let startedAt: Date

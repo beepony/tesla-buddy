@@ -143,6 +143,53 @@ export class PostgresRepository {
     return drives.find((drive) => drive.id === String(id)) ?? null;
   }
 
+  async listParkingSessions(vehicleId) {
+    const { rows } = await this.pool.query(`
+      WITH ordered_drives AS (
+        SELECT d.*,
+               LEAD(d.start_date) OVER (PARTITION BY d.car_id ORDER BY d.start_date) AS next_drive_started_at
+        FROM drives d
+        WHERE d.car_id = $1
+      )
+      SELECT d.id, d.car_id, d.end_date AS started_at,
+             d.next_drive_started_at AS ended_at,
+             d.end_address_id, d.end_geofence_id,
+             COALESCE(a.display_name, g.name, '未知停车地点') AS location_name,
+             p.latitude, p.longitude
+      FROM ordered_drives d
+      LEFT JOIN addresses a ON a.id = d.end_address_id
+      LEFT JOIN geofences g ON g.id = d.end_geofence_id
+      LEFT JOIN positions p ON p.id = d.end_position_id
+      WHERE d.end_date IS NOT NULL
+      ORDER BY d.end_date DESC
+      LIMIT 200`, [vehicleId]);
+
+    return rows.map((row) => {
+      const startedAt = new Date(row.started_at);
+      const endedAt = row.ended_at === null ? null : new Date(row.ended_at);
+      const durationMinutes = Math.max(0, ((endedAt ?? new Date()) - startedAt) / 60_000);
+      const locationKey = row.end_address_id !== null
+        ? `address:${row.end_address_id}`
+        : row.end_geofence_id !== null
+          ? `geofence:${row.end_geofence_id}`
+          : `drive:${row.id}`;
+      return {
+        id: String(row.id),
+        vehicleId: String(row.car_id),
+        startedAt,
+        endedAt,
+        durationMinutes,
+        isActive: endedAt === null,
+        locationKey,
+        locationName: shortLocationName(row.location_name, "停车地点"),
+        location: row.latitude === null ? null : {
+          latitude: number(row.latitude),
+          longitude: number(row.longitude)
+        }
+      };
+    });
+  }
+
   async listCharges(vehicleId) {
     const { rows } = await this.pool.query(`
       SELECT cp.id, cp.car_id, cp.start_date AS started_at, cp.end_date AS ended_at,

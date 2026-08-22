@@ -29,6 +29,8 @@ export function createApp(repository, clock = () => new Date(), apiToken = proce
     }
     const drives = url.pathname.match(/^\/v1\/vehicles\/([^/]+)\/drives$/);
     if (drives) return json(response, 200, { data: await repository.listDrives(decodeURIComponent(drives[1])) });
+    const parkingSessions = url.pathname.match(/^\/v1\/vehicles\/([^/]+)\/parking-sessions$/);
+    if (parkingSessions) return json(response, 200, { data: await repository.listParkingSessions(decodeURIComponent(parkingSessions[1])) });
     const drive = url.pathname.match(/^\/v1\/drives\/([^/]+)$/);
     if (drive) {
       const data = await repository.getDrive(decodeURIComponent(drive[1]));

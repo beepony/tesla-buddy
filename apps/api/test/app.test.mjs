@@ -38,3 +38,10 @@ test("protects vehicle data when an API token is configured", async () => {
   });
   assert.equal(authorized.status, 200);
 });
+
+test("returns parking sessions derived from drives", async () => {
+  const { status, body } = await request("/v1/vehicles/demo-model-y/parking-sessions");
+  assert.equal(status, 200);
+  assert.equal(body.data[0].isActive, true);
+  assert.equal(body.data[0].locationKey, "address:demo-office");
+});

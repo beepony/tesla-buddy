@@ -1,6 +1,7 @@
 import SwiftUI
+import MapKit
 
-private struct VehicleLoader {
+struct VehicleLoader {
     let apiClient: APIClient
 
     func firstVehicle() async throws -> VehicleOverview? {
@@ -21,40 +22,48 @@ struct DrivesView: View {
     let apiClient: APIClient
     @State private var drives: [Drive] = []
     @State private var message: String?
+    @State private var visibleMonth = Date()
+    @State private var presentation: DrivePresentation = .calendar
+    @State private var didChooseInitialMonth = false
 
     var body: some View {
         NavigationStack {
-            Group {
-                if drives.isEmpty {
-                    ContentUnavailableView("暂无行程", systemImage: "road.lanes", description: Text(message ?? "完成一次驾驶后，TeslaMate 会自动记录行程。"))
-                } else {
-                    List(drives) { drive in
-                        NavigationLink {
-                            DriveDetailView(drive: drive)
-                        } label: {
-                            VStack(alignment: .leading, spacing: 12) {
-                                HStack(spacing: 9) {
-                                    Image(systemName: "circle.fill").font(.caption2).foregroundStyle(.green)
-                                    Text(drive.startLocationName).font(.headline)
-                                    Image(systemName: "arrow.right").font(.caption.weight(.semibold)).foregroundStyle(.tertiary)
-                                    Image(systemName: "mappin.circle.fill").font(.subheadline).foregroundStyle(CompanionTheme.accent)
-                                    Text(drive.endLocationName).font(.headline)
-                                    Spacer(minLength: 0)
-                                }
-                                Text(chineseDateTime(drive.startedAt))
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
-                                HStack(spacing: 0) {
-                                    TripMetric(value: drive.energyUsedKwh.map { "\($0.formatted(.number.precision(.fractionLength(2)))) kWh" } ?? "—", label: "本次耗电")
-                                    Divider().padding(.horizontal, 12)
-                                    TripMetric(value: drive.averageConsumptionWhPerKm.map { "\($0) Wh/km" } ?? "—", label: "平均能耗")
-                                    Divider().padding(.horizontal, 12)
-                                    TripMetric(value: "\(drive.distanceKm.formatted(.number.precision(.fractionLength(1)))) km", label: "行驶距离")
-                                }
-                            }
-                            .padding(.vertical, 6)
-                        }
+            VStack(spacing: 0) {
+                MonthNavigationHeader(visibleMonth: $visibleMonth)
+                    .padding(.horizontal, 16)
+                    .padding(.top, 10)
+
+                Picker("展示方式", selection: $presentation) {
+                    ForEach(DrivePresentation.allCases) { item in
+                        Label(item.title, systemImage: item.icon).tag(item)
                     }
+                }
+                .pickerStyle(.segmented)
+                .padding(.horizontal, 16)
+                .padding(.vertical, 10)
+
+                if presentation == .calendar {
+                    ScrollView {
+                        VStack(spacing: 16) {
+                            DrivePeriodSummary(drives: monthDrives, title: monthTitle)
+                                .padding(16)
+                                .background(.background, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
+                                .overlay(RoundedRectangle(cornerRadius: 20, style: .continuous).stroke(.primary.opacity(0.05)))
+
+                            MonthCalendarView(month: visibleMonth, drives: monthDrives)
+
+                            if let message {
+                                Label(message, systemImage: "exclamationmark.triangle.fill")
+                                    .font(.footnote)
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
+                        .padding(.horizontal, 16)
+                        .padding(.bottom, 24)
+                    }
+                    .background(Color(uiColor: .systemGroupedBackground))
+                } else {
+                    VisitedPlacesMap(drives: monthDrives)
                 }
             }
             .navigationTitle("行程")
@@ -64,13 +73,348 @@ struct DrivesView: View {
         .task { await load() }
     }
 
+    private var monthDrives: [Drive] {
+        let interval = driveCalendar.dateInterval(of: .month, for: visibleMonth)!
+        return drives.filter { interval.contains($0.startedAt) }
+    }
+
+    private var monthTitle: String {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "zh_CN")
+        formatter.dateFormat = "yyyy年M月"
+        return formatter.string(from: visibleMonth)
+    }
+
     @MainActor private func load() async {
         do {
             guard let vehicle = try await VehicleLoader(apiClient: apiClient).firstVehicle() else { message = "尚未发现车辆"; return }
             drives = try await apiClient.get("/v1/vehicles/\(vehicle.id)/drives", as: [Drive].self)
+            if !didChooseInitialMonth, let latest = drives.first {
+                visibleMonth = latest.startedAt
+                didChooseInitialMonth = true
+            }
             message = nil
         } catch { message = "无法读取 Mac mini 数据。请确认两台设备在同一 Wi‑Fi；外出时请连接 Tailscale。" }
     }
+}
+
+private enum DrivePresentation: String, CaseIterable, Identifiable {
+    case calendar, map
+    var id: String { rawValue }
+    var title: String { self == .calendar ? "日历" : "足迹" }
+    var icon: String { self == .calendar ? "calendar" : "map.fill" }
+}
+
+private var driveCalendar: Calendar {
+    var calendar = Calendar(identifier: .gregorian)
+    calendar.locale = Locale(identifier: "zh_CN")
+    calendar.firstWeekday = 2
+    return calendar
+}
+
+private struct MonthNavigationHeader: View {
+    @Binding var visibleMonth: Date
+
+    private var title: String {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "zh_CN")
+        formatter.dateFormat = "yyyy年 M月"
+        return formatter.string(from: visibleMonth)
+    }
+
+    var body: some View {
+        HStack {
+            Button { moveMonth(-1) } label: {
+                Image(systemName: "chevron.left")
+                    .frame(width: 36, height: 36)
+            }
+            Spacer()
+            Text(title)
+                .font(.headline.weight(.bold))
+            Spacer()
+            Button { moveMonth(1) } label: {
+                Image(systemName: "chevron.right")
+                    .frame(width: 36, height: 36)
+            }
+        }
+    }
+
+    private func moveMonth(_ offset: Int) {
+        visibleMonth = driveCalendar.date(byAdding: .month, value: offset, to: visibleMonth) ?? visibleMonth
+    }
+}
+
+private struct MonthCalendarView: View {
+    let month: Date
+    let drives: [Drive]
+    private let weekdays = ["一", "二", "三", "四", "五", "六", "日"]
+
+    private var days: [Date?] {
+        guard let interval = driveCalendar.dateInterval(of: .month, for: month),
+              let dayRange = driveCalendar.range(of: .day, in: .month, for: month) else { return [] }
+        let weekday = driveCalendar.component(.weekday, from: interval.start)
+        let leading = (weekday - driveCalendar.firstWeekday + 7) % 7
+        var values = Array<Date?>(repeating: nil, count: leading)
+        values.append(contentsOf: dayRange.compactMap { day in
+            driveCalendar.date(byAdding: .day, value: day - 1, to: interval.start)
+        })
+        while values.count % 7 != 0 { values.append(nil) }
+        return values
+    }
+
+    private func drives(on date: Date) -> [Drive] {
+        drives.filter { driveCalendar.isDate($0.startedAt, inSameDayAs: date) }
+    }
+
+    var body: some View {
+        VStack(spacing: 8) {
+            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 4), count: 7), spacing: 6) {
+                ForEach(weekdays, id: \.self) { weekday in
+                    Text(weekday)
+                        .font(.caption2.weight(.semibold))
+                        .foregroundStyle(.secondary)
+                        .frame(maxWidth: .infinity)
+                }
+
+                ForEach(Array(days.enumerated()), id: \.offset) { _, date in
+                    if let date {
+                        let dayDrives = drives(on: date)
+                        NavigationLink {
+                            DailyDrivesView(date: date, drives: dayDrives)
+                        } label: {
+                            CalendarDayCell(date: date, tripCount: dayDrives.count)
+                        }
+                        .buttonStyle(.plain)
+                    } else {
+                        Color.clear.frame(height: 54)
+                    }
+                }
+            }
+        }
+        .padding(14)
+        .background(.background, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: 20, style: .continuous).stroke(.primary.opacity(0.05)))
+    }
+}
+
+private struct CalendarDayCell: View {
+    let date: Date
+    let tripCount: Int
+
+    private var isToday: Bool { driveCalendar.isDateInToday(date) }
+
+    var body: some View {
+        VStack(spacing: 4) {
+            Text("\(driveCalendar.component(.day, from: date))")
+                .font(.subheadline.weight(isToday ? .bold : .medium))
+                .foregroundStyle(isToday ? .white : .primary)
+                .frame(width: 30, height: 30)
+                .background(isToday ? Color.red : Color.clear, in: Circle())
+
+            if tripCount > 0 {
+                HStack(spacing: 3) {
+                    Circle()
+                        .fill(CompanionTheme.accent)
+                        .frame(width: 5, height: 5)
+                    Text("\(tripCount)")
+                        .font(.system(size: 9, weight: .semibold))
+                        .foregroundStyle(CompanionTheme.accent)
+                }
+            } else {
+                Color.clear.frame(height: 9)
+            }
+        }
+        .frame(maxWidth: .infinity, minHeight: 54)
+        .contentShape(Rectangle())
+    }
+}
+
+private struct DailyDrivesView: View {
+    let date: Date
+    let drives: [Drive]
+
+    private var title: String {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "zh_CN")
+        formatter.dateFormat = "M月d日 EEEE"
+        return formatter.string(from: date)
+    }
+
+    var body: some View {
+        List {
+            Section {
+                DrivePeriodSummary(drives: drives, title: title)
+            }
+
+            if drives.isEmpty {
+                Section {
+                    ContentUnavailableView("当天暂无行程", systemImage: "car.side", description: Text("TeslaMate 在这一天没有记录到驾驶行程。"))
+                }
+            } else {
+                Section("行程明细 · \(drives.count) 次") {
+                    ForEach(drives) { drive in
+                        NavigationLink {
+                            DriveDetailView(drive: drive)
+                        } label: {
+                            DriveRow(drive: drive)
+                        }
+                    }
+                }
+            }
+        }
+        .navigationTitle(title)
+        .navigationBarTitleDisplayMode(.inline)
+    }
+}
+
+private struct DrivePeriodSummary: View {
+    let drives: [Drive]
+    let title: String
+
+    private var distance: Double { drives.reduce(0) { $0 + $1.distanceKm } }
+    private var minutes: Int { drives.reduce(0) { $0 + $1.durationMinutes } }
+    private var energy: Double { drives.reduce(0) { $0 + ($1.energyUsedKwh ?? 0) } }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            HStack {
+                Label(title, systemImage: "calendar")
+                    .font(.subheadline.weight(.semibold))
+                Spacer()
+                Text("\(drives.count) 次行程")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(.secondary)
+            }
+            HStack(spacing: 0) {
+                TripMetric(value: "\(distance.formatted(.number.precision(.fractionLength(1)))) km", label: "行驶距离")
+                Divider().padding(.horizontal, 10)
+                TripMetric(value: driveDuration(minutes), label: "驾驶时间")
+                Divider().padding(.horizontal, 10)
+                TripMetric(value: "\(energy.formatted(.number.precision(.fractionLength(2)))) kWh", label: "累计耗电")
+            }
+        }
+        .padding(.vertical, 6)
+    }
+}
+
+private struct DriveRow: View {
+    let drive: Drive
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(spacing: 9) {
+                Image(systemName: "circle.fill").font(.caption2).foregroundStyle(.green)
+                Text(drive.startLocationName).font(.headline)
+                Image(systemName: "arrow.right").font(.caption.weight(.semibold)).foregroundStyle(.tertiary)
+                Image(systemName: "mappin.circle.fill").font(.subheadline).foregroundStyle(CompanionTheme.accent)
+                Text(drive.endLocationName).font(.headline)
+                Spacer(minLength: 0)
+            }
+            Text(chineseDateTime(drive.startedAt))
+                .font(.caption)
+                .foregroundStyle(.secondary)
+            HStack(spacing: 0) {
+                TripMetric(value: drive.energyUsedKwh.map { "\($0.formatted(.number.precision(.fractionLength(2)))) kWh" } ?? "—", label: "本次耗电")
+                Divider().padding(.horizontal, 12)
+                TripMetric(value: drive.averageConsumptionWhPerKm.map { "\($0) Wh/km" } ?? "—", label: "平均能耗")
+                Divider().padding(.horizontal, 12)
+                TripMetric(value: "\(drive.distanceKm.formatted(.number.precision(.fractionLength(1)))) km", label: "行驶距离")
+            }
+        }
+        .padding(.vertical, 6)
+    }
+}
+
+private struct VisitedPlace: Identifiable {
+    let id: String
+    let name: String
+    let coordinate: CLLocationCoordinate2D
+    let drives: [Drive]
+}
+
+private struct VisitedPlacesMap: View {
+    let drives: [Drive]
+    @State private var position: MapCameraPosition = .automatic
+    @State private var selectedPlaceID: String?
+    @State private var selectedPlace: VisitedPlace?
+
+    private var places: [VisitedPlace] {
+        let located = drives.compactMap { drive -> (String, DriveLocation, Drive)? in
+            guard let location = drive.endLocation else { return nil }
+            let latitude = Int((location.latitude * 10_000).rounded())
+            let longitude = Int((location.longitude * 10_000).rounded())
+            return ("\(drive.endLocationName)|\(latitude)|\(longitude)", location, drive)
+        }
+        let groups = Dictionary(grouping: located, by: \.0)
+        return groups.map { key, values in
+            let location = values[0].1
+            return VisitedPlace(
+                id: key,
+                name: values[0].2.endLocationName,
+                coordinate: CLLocationCoordinate2D(latitude: location.latitude, longitude: location.longitude),
+                drives: values.map(\.2).sorted { $0.startedAt > $1.startedAt }
+            )
+        }
+    }
+
+    var body: some View {
+        if places.isEmpty {
+            ContentUnavailableView("这一周期暂无足迹", systemImage: "map", description: Text("切换日期或时间范围查看去过的地点。"))
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+        } else {
+            Map(position: $position, selection: $selectedPlaceID) {
+                ForEach(places) { place in
+                    Marker(place.name, coordinate: place.coordinate)
+                        .tint(CompanionTheme.accent)
+                        .tag(place.id)
+                }
+            }
+            .mapStyle(.standard(elevation: .realistic))
+            .overlay(alignment: .topLeading) {
+                Label("已点亮 \(places.count) 个地点", systemImage: "sparkles")
+                    .font(.caption.weight(.semibold))
+                    .padding(.horizontal, 11)
+                    .padding(.vertical, 8)
+                    .background(.regularMaterial, in: Capsule())
+                    .padding(12)
+            }
+            .onChange(of: selectedPlaceID) {
+                guard let selectedPlaceID else { return }
+                selectedPlace = places.first { $0.id == selectedPlaceID }
+            }
+            .onChange(of: drives.map(\.id)) {
+                position = .automatic
+            }
+            .sheet(item: $selectedPlace, onDismiss: { selectedPlaceID = nil }) { place in
+                VisitedPlaceTripsView(place: place)
+            }
+        }
+    }
+}
+
+private struct VisitedPlaceTripsView: View {
+    let place: VisitedPlace
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        NavigationStack {
+            List(place.drives) { drive in
+                NavigationLink {
+                    DriveDetailView(drive: drive)
+                } label: {
+                    DriveRow(drive: drive)
+                }
+            }
+            .navigationTitle(place.name)
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar { Button("完成") { dismiss() } }
+        }
+    }
+}
+
+private func driveDuration(_ minutes: Int) -> String {
+    if minutes >= 60 { return "\(minutes / 60)小时\(minutes % 60)分" }
+    return "\(minutes)分钟"
 }
 
 private struct DriveDetailView: View {

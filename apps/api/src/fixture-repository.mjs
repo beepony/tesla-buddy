@@ -43,11 +43,26 @@ const charges = [
   }
 ];
 
+const parkingSessions = [
+  {
+    id: "parking-current", vehicleId: vehicle.id, startedAt: isoMinutesAgo(135), endedAt: null,
+    durationMinutes: 135, isActive: true, locationKey: "address:demo-office",
+    locationName: "静安区", location: { latitude: 31.2304, longitude: 121.4737 }
+  },
+  {
+    id: "parking-previous", vehicleId: vehicle.id, startedAt: "2026-07-24T11:08:00Z",
+    endedAt: "2026-07-25T09:10:00Z", durationMinutes: 1322, isActive: false,
+    locationKey: "address:demo-home", locationName: "浦东新区",
+    location: { latitude: 31.221, longitude: 121.544 }
+  }
+];
+
 export class FixtureRepository {
   async listVehicles() { return [vehicle]; }
   async getOverview(id) { return id === vehicle.id ? vehicle : null; }
   async listDrives(id) { return id === vehicle.id ? drives : []; }
   async getDrive(id) { return drives.find((drive) => drive.id === id) ?? null; }
+  async listParkingSessions(id) { return id === vehicle.id ? parkingSessions : []; }
   async listCharges(id) { return id === vehicle.id ? charges : []; }
   async getReport(vehicleId) {
     if (vehicleId !== vehicle.id) return null;
