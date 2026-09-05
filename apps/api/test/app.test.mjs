@@ -45,3 +45,10 @@ test("returns parking sessions derived from drives", async () => {
   assert.equal(body.data[0].isActive, true);
   assert.equal(body.data[0].locationKey, "address:demo-office");
 });
+
+test("charging status is authenticated and no session is represented as null", async () => {
+  assert.equal((await request("/v1/vehicles/demo-model-y/charging-status", { apiToken: "test-token" })).status, 401);
+  const result = await request("/v1/vehicles/demo-model-y/charging-status", { apiToken: "test-token", authorization: "Bearer test-token" });
+  assert.equal(result.status, 200);
+  assert.equal(result.body.data, null);
+});

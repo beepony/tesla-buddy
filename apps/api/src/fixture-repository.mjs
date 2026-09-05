@@ -63,6 +63,7 @@ export class FixtureRepository {
   async listDrives(id) { return id === vehicle.id ? drives : []; }
   async getDrive(id) { return drives.find((drive) => drive.id === id) ?? null; }
   async listParkingSessions(id) { return id === vehicle.id ? parkingSessions : []; }
+  async getChargingStatus() { return null; }
   async listCharges(id) { return id === vehicle.id ? charges : []; }
   async getReport(vehicleId) {
     if (vehicleId !== vehicle.id) return null;

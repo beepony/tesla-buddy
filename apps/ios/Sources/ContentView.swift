@@ -8,6 +8,8 @@ enum CompanionTheme {
 
 struct ContentView: View {
     let apiClient: APIClient
+    @State private var isActive = UIApplication.shared.applicationState == .active
+    @StateObject private var charging = ChargingActivityManager()
 
     var body: some View {
         TabView {
@@ -25,6 +27,16 @@ struct ContentView: View {
         .tint(CompanionTheme.accent)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color(uiColor: .systemGroupedBackground).ignoresSafeArea())
+        .environmentObject(charging)
+        .onReceive(NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification)) { _ in isActive = true }
+        .onReceive(NotificationCenter.default.publisher(for: UIApplication.willResignActiveNotification)) { _ in isActive = false }
+        .task(id: isActive) {
+            guard isActive else { return }
+            while !Task.isCancelled {
+                await charging.refresh(using: apiClient)
+                do { try await Task.sleep(for: .seconds(15)) } catch { return }
+            }
+        }
     }
 }
 

@@ -517,16 +517,21 @@ private struct MapTarget: Identifiable {
 
 struct ChargesView: View {
     let apiClient: APIClient
+    @EnvironmentObject private var charging: ChargingActivityManager
     @State private var charges: [Charge] = []
     @State private var message: String?
 
     var body: some View {
         NavigationStack {
-            Group {
+            List {
+                CurrentChargingCard()
+                    .listRowInsets(EdgeInsets())
+                    .listRowBackground(Color.clear)
+                    .listRowSeparator(.hidden)
                 if charges.isEmpty {
                     ContentUnavailableView("暂无充电记录", systemImage: "bolt.car", description: Text(message ?? "完成一次充电后，记录会显示在这里。"))
                 } else {
-                    List(charges) { charge in
+                    ForEach(charges) { charge in
                         NavigationLink {
                             ChargeDetailView(charge: charge)
                         } label: {
@@ -562,7 +567,10 @@ struct ChargesView: View {
             }
             .navigationTitle("充电")
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar { Button("刷新", systemImage: "arrow.clockwise") { Task { await load() } } }
+            .toolbar { Button("刷新", systemImage: "arrow.clockwise") { Task {
+                await charging.refresh(using: apiClient)
+                await load()
+            } } }
         }
         .task { await load() }
     }

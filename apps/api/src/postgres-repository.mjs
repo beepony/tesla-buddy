@@ -1,4 +1,5 @@
 import pg from "pg";
+import { chargingStatus } from "./charging-status.mjs";
 
 const { Pool } = pg;
 
@@ -188,6 +189,21 @@ export class PostgresRepository {
         }
       };
     });
+  }
+
+  async getChargingStatus(vehicleId) {
+    const { rows } = await this.pool.query(`
+      SELECT cp.id, cp.car_id, cp.start_date, cp.end_date,
+             cp.end_battery_level, cp.charge_energy_added,
+             ch.date AS sample_date, ch.battery_level, ch.charger_power,
+             ch.charge_energy_added AS sample_energy
+      FROM charging_processes cp
+      LEFT JOIN LATERAL (
+        SELECT date, battery_level, charger_power, charge_energy_added
+        FROM charges WHERE charging_process_id = cp.id ORDER BY date DESC, id DESC LIMIT 1
+      ) ch ON true
+      WHERE cp.car_id = $1 ORDER BY cp.start_date DESC, cp.id DESC LIMIT 1`, [vehicleId]);
+    return chargingStatus(rows[0]);
   }
 
   async listCharges(vehicleId) {

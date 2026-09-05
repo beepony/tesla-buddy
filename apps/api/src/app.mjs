@@ -36,6 +36,8 @@ export function createApp(repository, clock = () => new Date(), apiToken = proce
       const data = await repository.getDrive(decodeURIComponent(drive[1]));
       return data ? json(response, 200, { data }) : json(response, 404, { error: "drive_not_found" });
     }
+    const charging = url.pathname.match(/^\/v1\/vehicles\/([^/]+)\/charging-status$/);
+    if (charging) return json(response, 200, { data: await repository.getChargingStatus(decodeURIComponent(charging[1])) });
     const charges = url.pathname.match(/^\/v1\/vehicles\/([^/]+)\/charges$/);
     if (charges) return json(response, 200, { data: await repository.listCharges(decodeURIComponent(charges[1])) });
     if (url.pathname === "/v1/reports/summary") {

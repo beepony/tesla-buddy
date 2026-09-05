@@ -7,15 +7,44 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0F7121BE453521801F0C2408 /* ChargingActivityManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95614B300AF903EAA57A737D /* ChargingActivityManager.swift */; };
 		139661B4C5A0AD4D5DB08ED2 /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = 054E24729D0DA95F0199FB1F /* Models.swift */; };
+		466275FEED7D447354212649 /* ChargingActivityAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC5044D3287ED96E3DA093B7 /* ChargingActivityAttributes.swift */; };
 		576756CB731802E731588685 /* LocalSecrets.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B0E647445DB91609884C363 /* LocalSecrets.swift */; };
 		76610E0F2034DFF7B9E76806 /* HistoryViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = E93CFA84A8260F247AA29B33 /* HistoryViews.swift */; };
 		7F390D1467E5F5C878136292 /* TeslaCompanionApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16EE0B553ECD7098F74EDDCF /* TeslaCompanionApp.swift */; };
 		901ABB55C25DD8B9CC2939C9 /* APIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31200F650E392257DB7716C8 /* APIClient.swift */; };
+		B00DE2CD7986E0C655BE7D8D /* ChargingWidget.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = BFA99A743F2FF336A39A18FC /* ChargingWidget.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		D60FFB431A62AA060E18F124 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4DABBE985CD82214F0B74EA /* ContentView.swift */; };
+		DB0AA963777DFEAF9ECFB1DA /* ChargingActivityAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC5044D3287ED96E3DA093B7 /* ChargingActivityAttributes.swift */; };
 		DE8C4E1A721E1D649E7A0A0A /* ParkingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 276783E8ED68BBFEBEBEE355 /* ParkingView.swift */; };
 		DFF5B0288494DF0EA5B672BC /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = DF57F0F4385B74FE5D2D1A6E /* Assets.xcassets */; };
+		E5796061C430BB6D84B83164 /* ChargingLiveActivity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 70EF01C735A1B0F3FEB2378E /* ChargingLiveActivity.swift */; };
 /* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		2AD309E15BF7F596E1BA665D /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A7AD5AD381D7B04979C98CD5 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 605D0DBDEA48F0E40BEE694B;
+			remoteInfo = ChargingWidget;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		3A2847E1905B8627514679DE /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				B00DE2CD7986E0C655BE7D8D /* ChargingWidget.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		054E24729D0DA95F0199FB1F /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
@@ -23,16 +52,37 @@
 		276783E8ED68BBFEBEBEE355 /* ParkingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ParkingView.swift; sourceTree = "<group>"; };
 		31200F650E392257DB7716C8 /* APIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIClient.swift; sourceTree = "<group>"; };
 		3B0E647445DB91609884C363 /* LocalSecrets.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalSecrets.swift; sourceTree = "<group>"; };
+		70EF01C735A1B0F3FEB2378E /* ChargingLiveActivity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChargingLiveActivity.swift; sourceTree = "<group>"; };
+		95614B300AF903EAA57A737D /* ChargingActivityManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChargingActivityManager.swift; sourceTree = "<group>"; };
+		BFA99A743F2FF336A39A18FC /* ChargingWidget.appex */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = "wrapper.app-extension"; path = ChargingWidget.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		CA61C8CD90F25483C73760B5 /* TeslaCompanion.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = TeslaCompanion.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		CC5044D3287ED96E3DA093B7 /* ChargingActivityAttributes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChargingActivityAttributes.swift; sourceTree = "<group>"; };
 		DF57F0F4385B74FE5D2D1A6E /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		E4DABBE985CD82214F0B74EA /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		E93CFA84A8260F247AA29B33 /* HistoryViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryViews.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
+		5EEFC93353D7854B0B6B0D50 /* Shared */ = {
+			isa = PBXGroup;
+			children = (
+				CC5044D3287ED96E3DA093B7 /* ChargingActivityAttributes.swift */,
+			);
+			path = Shared;
+			sourceTree = "<group>";
+		};
+		83786CE2C32419406A73CD09 /* ChargingWidget */ = {
+			isa = PBXGroup;
+			children = (
+				70EF01C735A1B0F3FEB2378E /* ChargingLiveActivity.swift */,
+			);
+			path = ChargingWidget;
+			sourceTree = "<group>";
+		};
 		A8B6E254F03F8054CF3CE80F /* Products */ = {
 			isa = PBXGroup;
 			children = (
+				BFA99A743F2FF336A39A18FC /* ChargingWidget.appex */,
 				CA61C8CD90F25483C73760B5 /* TeslaCompanion.app */,
 			);
 			name = Products;
@@ -42,6 +92,7 @@
 			isa = PBXGroup;
 			children = (
 				31200F650E392257DB7716C8 /* APIClient.swift */,
+				95614B300AF903EAA57A737D /* ChargingActivityManager.swift */,
 				E4DABBE985CD82214F0B74EA /* ContentView.swift */,
 				E93CFA84A8260F247AA29B33 /* HistoryViews.swift */,
 				3B0E647445DB91609884C363 /* LocalSecrets.swift */,
@@ -56,6 +107,8 @@
 			isa = PBXGroup;
 			children = (
 				DF57F0F4385B74FE5D2D1A6E /* Assets.xcassets */,
+				83786CE2C32419406A73CD09 /* ChargingWidget */,
+				5EEFC93353D7854B0B6B0D50 /* Shared */,
 				B43136B564AEDC06A1DAF63F /* Sources */,
 				A8B6E254F03F8054CF3CE80F /* Products */,
 			);
@@ -70,10 +123,12 @@
 			buildPhases = (
 				AC6530BA4B3C65CBDAA9856D /* Sources */,
 				63F36A9158C5890FBD1EEB63 /* Resources */,
+				3A2847E1905B8627514679DE /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				27CFC3B37B780BCFE17AE284 /* PBXTargetDependency */,
 			);
 			name = TeslaCompanion;
 			packageProductDependencies = (
@@ -81,6 +136,23 @@
 			productName = TeslaCompanion;
 			productReference = CA61C8CD90F25483C73760B5 /* TeslaCompanion.app */;
 			productType = "com.apple.product-type.application";
+		};
+		605D0DBDEA48F0E40BEE694B /* ChargingWidget */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A40ABF4C3D58C54F6384969F /* Build configuration list for PBXNativeTarget "ChargingWidget" */;
+			buildPhases = (
+				305635C852EFCB60C3F47FA3 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = ChargingWidget;
+			packageProductDependencies = (
+			);
+			productName = ChargingWidget;
+			productReference = BFA99A743F2FF336A39A18FC /* ChargingWidget.appex */;
+			productType = "com.apple.product-type.app-extension";
 		};
 /* End PBXNativeTarget section */
 
@@ -92,6 +164,10 @@
 				LastUpgradeCheck = 1430;
 				TargetAttributes = {
 					30360B98AC7956162BC16102 = {
+						DevelopmentTeam = XP22J2NPC5;
+						ProvisioningStyle = Automatic;
+					};
+					605D0DBDEA48F0E40BEE694B = {
 						DevelopmentTeam = XP22J2NPC5;
 						ProvisioningStyle = Automatic;
 					};
@@ -112,6 +188,7 @@
 			projectRoot = "";
 			targets = (
 				30360B98AC7956162BC16102 /* TeslaCompanion */,
+				605D0DBDEA48F0E40BEE694B /* ChargingWidget */,
 			);
 		};
 /* End PBXProject section */
@@ -128,11 +205,22 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		305635C852EFCB60C3F47FA3 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				466275FEED7D447354212649 /* ChargingActivityAttributes.swift in Sources */,
+				E5796061C430BB6D84B83164 /* ChargingLiveActivity.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		AC6530BA4B3C65CBDAA9856D /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 				901ABB55C25DD8B9CC2939C9 /* APIClient.swift in Sources */,
+				DB0AA963777DFEAF9ECFB1DA /* ChargingActivityAttributes.swift in Sources */,
+				0F7121BE453521801F0C2408 /* ChargingActivityManager.swift in Sources */,
 				D60FFB431A62AA060E18F124 /* ContentView.swift in Sources */,
 				76610E0F2034DFF7B9E76806 /* HistoryViews.swift in Sources */,
 				576756CB731802E731588685 /* LocalSecrets.swift in Sources */,
@@ -144,7 +232,37 @@
 		};
 /* End PBXSourcesBuildPhase section */
 
+/* Begin PBXTargetDependency section */
+		27CFC3B37B780BCFE17AE284 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 605D0DBDEA48F0E40BEE694B /* ChargingWidget */;
+			targetProxy = 2AD309E15BF7F596E1BA665D /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
 /* Begin XCBuildConfiguration section */
+		143A094370D831F52B08BE11 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 23;
+				DEVELOPMENT_TEAM = XP22J2NPC5;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = ChargingWidget/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.personal.teslacompanion.charging;
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
 		1F193ED64E3E6D0DB6B1AE1C /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -164,6 +282,28 @@
 				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Debug;
+		};
+		262039403BA818ABA585E0BB /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 23;
+				DEVELOPMENT_TEAM = XP22J2NPC5;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = ChargingWidget/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.personal.teslacompanion.charging;
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
 		};
 		6A08CE38F81302803AFEE6C5 /* Debug */ = {
 			isa = XCBuildConfiguration;
@@ -321,6 +461,15 @@
 			buildConfigurations = (
 				1F193ED64E3E6D0DB6B1AE1C /* Debug */,
 				D4916C26963BA18AB95ADAA6 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		A40ABF4C3D58C54F6384969F /* Build configuration list for PBXNativeTarget "ChargingWidget" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				143A094370D831F52B08BE11 /* Debug */,
+				262039403BA818ABA585E0BB /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;

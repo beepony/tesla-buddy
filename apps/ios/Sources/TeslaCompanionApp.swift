@@ -9,13 +9,9 @@ final class TeslaCompanionAppDelegate: NSObject, UIApplicationDelegate {
         _ application: UIApplication,
         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
     ) -> Bool {
-        #if targetEnvironment(simulator)
-        let rootView = ChargesView(apiClient: APIClient(baseURLs: apiBaseURLs, apiToken: TeslaBuddySecrets.apiToken))
-        #else
         let rootView = ContentView(
             apiClient: APIClient(baseURLs: apiBaseURLs, apiToken: TeslaBuddySecrets.apiToken)
         )
-        #endif
         let window = UIWindow(frame: UIScreen.main.bounds)
         window.rootViewController = UIHostingController(rootView: rootView)
         window.makeKeyAndVisible()

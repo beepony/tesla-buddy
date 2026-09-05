@@ -11,7 +11,10 @@ targets:
     platform: iOS
     sources:
       - path: Sources
+      - path: Shared
       - path: Assets.xcassets
+    dependencies:
+      - target: ChargingWidget
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.personal.teslacompanion
@@ -24,3 +27,22 @@ targets:
         TARGETED_DEVICE_FAMILY: 1
     scheme:
       testTargets: []
+  ChargingWidget:
+    type: app-extension
+    platform: iOS
+    sources:
+      - path: ChargingWidget
+        excludes: [Info.plist]
+      - path: Shared
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.personal.teslacompanion.charging
+        CURRENT_PROJECT_VERSION: 23
+        MARKETING_VERSION: 1.0
+        CODE_SIGN_STYLE: Automatic
+        DEVELOPMENT_TEAM: XP22J2NPC5
+        GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_FILE: ChargingWidget/Info.plist
+        TARGETED_DEVICE_FAMILY: 1
+        SKIP_INSTALL: YES
+        APPLICATION_EXTENSION_API_ONLY: YES
