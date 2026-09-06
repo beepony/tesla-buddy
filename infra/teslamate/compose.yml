@@ -60,14 +60,15 @@ services:
   mosquitto:
     image: eclipse-mosquitto:2
     restart: unless-stopped
-    command: mosquitto -c /mosquitto-no-auth.conf
+    command: mosquitto -c /mosquitto/config/mosquitto.conf
+    ports:
+      - "127.0.0.1:1883:1883"
     volumes:
-      - mosquitto-conf:/mosquitto/config
+      - ../mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
       - mosquitto-data:/mosquitto/data
 
 volumes:
   teslamate-import:
   teslamate-db:
   teslamate-grafana-data:
-  mosquitto-conf:
   mosquitto-data:

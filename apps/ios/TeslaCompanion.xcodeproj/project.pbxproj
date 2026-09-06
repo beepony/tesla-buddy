@@ -246,7 +246,7 @@
 			buildSettings = {
 				APPLICATION_EXTENSION_API_ONLY = YES;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 23;
+				CURRENT_PROJECT_VERSION = 24;
 				DEVELOPMENT_TEAM = XP22J2NPC5;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = ChargingWidget/Info.plist;
@@ -255,7 +255,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.personal.teslacompanion.charging;
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
@@ -269,6 +269,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 24;
 				DEVELOPMENT_TEAM = XP22J2NPC5;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = Supporting/Info.plist;
@@ -276,6 +277,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
+				MARKETING_VERSION = 1.1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.personal.teslacompanion;
 				PRODUCT_NAME = "Tesla Buddy";
 				SDKROOT = iphoneos;
@@ -288,7 +290,7 @@
 			buildSettings = {
 				APPLICATION_EXTENSION_API_ONLY = YES;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 23;
+				CURRENT_PROJECT_VERSION = 24;
 				DEVELOPMENT_TEAM = XP22J2NPC5;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = ChargingWidget/Info.plist;
@@ -297,7 +299,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.personal.teslacompanion.charging;
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
@@ -430,6 +432,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 24;
 				DEVELOPMENT_TEAM = XP22J2NPC5;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = Supporting/Info.plist;
@@ -437,6 +440,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
+				MARKETING_VERSION = 1.1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.personal.teslacompanion;
 				PRODUCT_NAME = "Tesla Buddy";
 				SDKROOT = iphoneos;

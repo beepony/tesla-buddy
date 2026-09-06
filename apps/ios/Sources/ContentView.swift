@@ -13,7 +13,7 @@ struct ContentView: View {
 
     var body: some View {
         TabView {
-            OverviewView(apiClient: apiClient)
+            OverviewView(apiClient: apiClient, isActive: isActive)
                 .tabItem { Label("概览", systemImage: "car.fill") }
             DrivesView(apiClient: apiClient)
                 .tabItem { Label("行程", systemImage: "road.lanes") }
@@ -42,9 +42,11 @@ struct ContentView: View {
 
 struct OverviewView: View {
     let apiClient: APIClient
+    let isActive: Bool
     @State private var vehicle: VehicleOverview?
     @State private var isLoading = false
     @State private var errorMessage: String?
+    @State private var showingSoftwareUpdate = false
 
     var body: some View {
         NavigationStack {
@@ -67,46 +69,74 @@ struct OverviewView: View {
                         Image(systemName: "arrow.clockwise")
                     }
                     .accessibilityLabel("刷新车辆状态")
+                    .disabled(isLoading)
                 }
             }
         }
-        .task { await loadOverview() }
+        .task(id: isActive) {
+            guard isActive else { return }
+            while !Task.isCancelled {
+                await loadOverview()
+                do { try await Task.sleep(for: .seconds(60)) } catch { return }
+            }
+        }
+        .sheet(isPresented: $showingSoftwareUpdate) {
+            if let vehicle {
+                SoftwareUpdateDetails(vehicle: vehicle, refreshError: errorMessage)
+            }
+        }
     }
 
     private func dashboard(for vehicle: VehicleOverview) -> some View {
-        VStack(alignment: .leading, spacing: 16) {
-            HStack {
-                Text("车辆概览").font(.title3.weight(.bold))
-                Spacer()
-                Text(vehicle.lastUpdatedAt?.formatted(.relative(presentation: .named)) ?? "等待首条快照")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
+        ScrollView {
+            VStack(alignment: .leading, spacing: 16) {
+                HStack {
+                    Text("车辆概览").font(.title3.weight(.bold))
+                    Spacer()
+                    Text(vehicle.lastUpdatedAt?.formatted(.relative(presentation: .named)) ?? "等待首条快照")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
 
-            VehicleDashboardCard(vehicle: vehicle)
+                VehicleDashboardCard(vehicle: vehicle)
 
-            VStack(alignment: .leading, spacing: 10) {
-                SectionTitle("关键数据", detail: "实时状态")
-                LazyVGrid(
-                    columns: [GridItem(.flexible(), spacing: 10), GridItem(.flexible(), spacing: 10)],
-                    spacing: 10
-                ) {
-                    MetricTile(icon: "battery.100percent", title: "电池容量", value: vehicle.estimatedBatteryCapacityKwh.map { "\($0.formatted(.number.precision(.fractionLength(1)))) kWh" } ?? "—", detail: "充电数据估算")
-                    MetricTile(icon: "road.lanes", title: "最大续航", value: vehicle.estimatedMaxRangeKm.map { "\($0.formatted(.number.precision(.fractionLength(0)))) km" } ?? "—", detail: "按当前电量外推")
-                    MetricTile(icon: "gauge.with.dots.needle.67percent", title: "累计里程", value: vehicle.odometerKm.map { "\($0.formatted(.number.precision(.fractionLength(0)))) km" } ?? "—", detail: "总行驶距离")
-                    MetricTile(icon: "cpu", title: "系统版本", value: vehicle.softwareVersion ?? "暂无记录", detail: "车辆软件")
+                if let errorMessage {
+                    Label("刷新失败，当前显示上次数据。\(errorMessage)", systemImage: "wifi.exclamationmark")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+
+                VStack(alignment: .leading, spacing: 10) {
+                    SectionTitle("关键数据", detail: "实时状态")
+                    LazyVGrid(
+                        columns: [GridItem(.flexible(), spacing: 10), GridItem(.flexible(), spacing: 10)],
+                        spacing: 10
+                    ) {
+                        MetricTile(icon: "battery.100percent", title: "电池容量", value: vehicle.estimatedBatteryCapacityKwh.map { "\($0.formatted(.number.precision(.fractionLength(1)))) kWh" } ?? "—", detail: "充电数据估算")
+                        MetricTile(icon: "road.lanes", title: "最大续航", value: vehicle.estimatedMaxRangeKm.map { "\($0.formatted(.number.precision(.fractionLength(0)))) km" } ?? "—", detail: "按当前电量外推")
+                        MetricTile(icon: "gauge.with.dots.needle.67percent", title: "累计里程", value: vehicle.odometerKm.map { "\($0.formatted(.number.precision(.fractionLength(0)))) km" } ?? "—", detail: "总行驶距离")
+                        Button { showingSoftwareUpdate = true } label: {
+                            MetricTile(
+                                icon: "cpu", title: "系统版本",
+                                value: vehicle.softwareVersion ?? "暂无记录",
+                                detail: errorMessage == nil ? vehicle.softwareUpdateTitle : "更新状态待刷新",
+                                badge: errorMessage == nil && vehicle.hasSoftwareUpdate ? "有更新" : nil
+                            )
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityHint("查看车辆软件更新状态和更新方法")
+                    }
                 }
             }
-            Spacer(minLength: 0)
+            .padding(.horizontal, 20)
+            .padding(.vertical, 12)
         }
-        .padding(.horizontal, 20)
-        .padding(.top, 12)
-        .padding(.bottom, 12)
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        .refreshable { await loadOverview() }
     }
 
     @MainActor
     private func loadOverview() async {
+        guard !isLoading else { return }
         isLoading = true
         defer { isLoading = false }
         do {
@@ -119,6 +149,7 @@ struct OverviewView: View {
             vehicle = try await apiClient.get("/v1/vehicles/\(selectedVehicle.id)/overview", as: VehicleOverview.self)
             errorMessage = nil
         } catch {
+            guard !Task.isCancelled else { return }
             errorMessage = localConnectionMessage(for: error)
         }
     }
@@ -316,13 +347,25 @@ private struct MetricTile: View {
     let title: String
     let value: String
     let detail: String
+    var badge: String? = nil
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Image(systemName: icon)
-                .font(.subheadline.weight(.semibold))
-                .foregroundStyle(CompanionTheme.accent)
-                .frame(width: 24, height: 24)
+            HStack {
+                Image(systemName: icon)
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(CompanionTheme.accent)
+                    .frame(width: 24, height: 24)
+                Spacer(minLength: 0)
+                if let badge {
+                    Text(badge)
+                        .font(.caption2.weight(.bold))
+                        .foregroundStyle(CompanionTheme.accent)
+                        .padding(.horizontal, 7)
+                        .padding(.vertical, 4)
+                        .background(CompanionTheme.accent.opacity(0.12), in: Capsule())
+                }
+            }
             Text(value)
                 .font(.title3.weight(.bold))
                 .lineLimit(1)
@@ -336,6 +379,62 @@ private struct MetricTile: View {
         .padding(12)
         .background(.background, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
         .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous).stroke(.primary.opacity(0.05)))
+    }
+}
+
+private struct SoftwareUpdateDetails: View {
+    let vehicle: VehicleOverview
+    let refreshError: String?
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        NavigationStack {
+            List {
+                Section("车辆软件") {
+                    LabeledContent("当前版本", value: vehicle.softwareVersion ?? "暂无记录")
+                    LabeledContent("更新状态", value: refreshError == nil ? vehicle.softwareUpdateTitle : "更新状态待刷新")
+                    if refreshError == nil && vehicle.hasSoftwareUpdate {
+                        LabeledContent("可用版本", value: vehicle.availableSoftwareVersion ?? "车辆尚未提供版本号")
+                    }
+                }
+
+                Section {
+                    if refreshError != nil {
+                        Text("暂时无法刷新更新状态，请检查网络连接后返回概览刷新。")
+                    } else if vehicle.hasSoftwareUpdate {
+                        Text("车辆上次同步时有软件更新可用。请打开 Tesla 官方 App 的「软件更新」，或在车机中进入「控制 > 软件」查看、安装或预约更新。")
+                    } else if vehicle.updateStatus == "no_update" {
+                        Text("车辆上次同步时没有待安装更新。软件按车型和地区分批推送，收到推送后这里会显示提示。")
+                    } else {
+                        Text("暂未获取到车辆的更新状态。车辆同步后可再次刷新，也可在 Tesla 官方 App 或车机「控制 > 软件」中查看。")
+                    }
+                    Link(destination: URL(string: "https://www.tesla.com/support/software-updates")!) {
+                        Label("查看 Tesla 官方更新指南", systemImage: "arrow.up.right.square")
+                    }
+                } header: {
+                    Text("如何更新")
+                } footer: {
+                    Text("此处显示车辆上次上报的状态；安装操作请在 Tesla 官方 App 或车机完成。")
+                }
+
+                if refreshError == nil, let receivedAt = vehicle.softwareUpdateReceivedAt {
+                    Section {
+                        LabeledContent("更新消息接收于") {
+                            Text(receivedAt.formatted(date: .abbreviated, time: .shortened))
+                        }
+                    } footer: {
+                        Text("接收时间不代表车辆检查更新时间，休眠或离线时可能显示之前的消息。")
+                    }
+                }
+            }
+            .navigationTitle("系统版本")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("完成") { dismiss() }
+                }
+            }
+        }
     }
 }
 

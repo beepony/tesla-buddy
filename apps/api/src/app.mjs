@@ -12,7 +12,8 @@ const isAuthorized = (request, apiToken) => {
   return actual.length === expected.length && timingSafeEqual(actual, expected);
 };
 
-export function createApp(repository, clock = () => new Date(), apiToken = process.env.TESLA_BUDDY_API_TOKEN) {
+export function createApp(repository, clock = () => new Date(), apiToken = process.env.TESLA_BUDDY_API_TOKEN, softwareUpdates = null) {
+  const withUpdates = (vehicle) => softwareUpdates?.overview(vehicle) ?? vehicle;
   return async (request, response) => {
     const url = new URL(request.url, `http://${request.headers.host ?? "localhost"}`);
     if (request.method !== "GET") return json(response, 405, { error: "method_not_allowed" });
@@ -20,12 +21,12 @@ export function createApp(repository, clock = () => new Date(), apiToken = proce
     if (url.pathname.startsWith("/v1/") && !isAuthorized(request, apiToken)) {
       return json(response, 401, { error: "unauthorized" });
     }
-    if (url.pathname === "/v1/vehicles") return json(response, 200, { data: await repository.listVehicles() });
+    if (url.pathname === "/v1/vehicles") return json(response, 200, { data: (await repository.listVehicles()).map(withUpdates) });
 
     const overview = url.pathname.match(/^\/v1\/vehicles\/([^/]+)\/overview$/);
     if (overview) {
       const data = await repository.getOverview(decodeURIComponent(overview[1]));
-      return data ? json(response, 200, { data }) : json(response, 404, { error: "vehicle_not_found" });
+      return data ? json(response, 200, { data: withUpdates(data) }) : json(response, 404, { error: "vehicle_not_found" });
     }
     const drives = url.pathname.match(/^\/v1\/vehicles\/([^/]+)\/drives$/);
     if (drives) return json(response, 200, { data: await repository.listDrives(decodeURIComponent(drives[1])) });

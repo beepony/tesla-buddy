@@ -19,6 +19,8 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.personal.teslacompanion
         PRODUCT_NAME: Tesla Buddy
+        CURRENT_PROJECT_VERSION: 24
+        MARKETING_VERSION: 1.1.0
         CODE_SIGN_STYLE: Automatic
         DEVELOPMENT_TEAM: XP22J2NPC5
         GENERATE_INFOPLIST_FILE: NO
@@ -37,8 +39,8 @@ targets:
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.personal.teslacompanion.charging
-        CURRENT_PROJECT_VERSION: 23
-        MARKETING_VERSION: 1.0
+        CURRENT_PROJECT_VERSION: 24
+        MARKETING_VERSION: 1.1.0
         CODE_SIGN_STYLE: Automatic
         DEVELOPMENT_TEAM: XP22J2NPC5
         GENERATE_INFOPLIST_FILE: YES

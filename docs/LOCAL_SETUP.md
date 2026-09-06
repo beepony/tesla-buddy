@@ -25,4 +25,6 @@ npm test
 
 ## iOS 开发前置条件
 
+车辆软件更新提示的 MQTT 接入和验证步骤见 [车辆软件更新提示](SOFTWARE_UPDATES.md)。
+
 安装完整 Xcode 和 XcodeGen 后，可使用 iOS 17+ Simulator 或真机运行 `apps/ios` 中的 SwiftUI 工程。真机运行需要 Apple Developer 签名。

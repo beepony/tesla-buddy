@@ -16,7 +16,19 @@ struct VehicleOverview: Decodable, Identifiable {
     let odometerKm: Double?
     let softwareVersion: String?
     let updateStatus: String?
+    let availableSoftwareVersion: String?
+    let softwareUpdateReceivedAt: Date?
     let lastUpdatedAt: Date?
+
+    var hasSoftwareUpdate: Bool { updateStatus == "available" }
+
+    var softwareUpdateTitle: String {
+        switch updateStatus {
+        case "available": return "有更新"
+        case "no_update": return "暂无更新"
+        default: return "更新状态未知"
+        }
+    }
 }
 
 struct Drive: Decodable, Identifiable {
