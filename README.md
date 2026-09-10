@@ -1,6 +1,8 @@
 # Tesla Buddy
 
-当前版本：**1.1.0 (24)**
+当前版本：**1.2.0 (25)**
+
+本版更新：新增“我的”与设置，合并用车报告入口，将灵动岛开关移至设置；加粗灵动岛信息，优化锁屏实时动态的字号、布局和上下留白。完整记录见 [更新日志](CHANGELOG.md)。
 
 Tesla Buddy 是一套本地优先的私人 Tesla 数据助手。它从家中 Mac mini 上运行的 TeslaMate 读取数据，通过受保护的本地 API 提供给原生 iOS App，不保存 Tesla 登录令牌，也不会直接控制车辆。
 
@@ -76,6 +78,8 @@ xcodebuild -project apps/ios/TeslaCompanion.xcodeproj \
 
 ## 文档
 
+- [版本管理与发布流程](docs/VERSIONING.md)
+- [版本更新日志](CHANGELOG.md)
 - [产品需求说明](docs/PRD.md)
 - [本地开发与 TeslaMate 接入](docs/LOCAL_SETUP.md)
 - [车辆软件更新提示](docs/SOFTWARE_UPDATES.md)
