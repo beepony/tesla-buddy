@@ -637,6 +637,64 @@ private func durationText(_ minutes: Int) -> String {
     (Double(minutes) / 60).formatted(.number.precision(.fractionLength(1))) + " 小时"
 }
 
+struct MyView: View {
+    let apiClient: APIClient
+
+    var body: some View {
+        NavigationStack {
+            List {
+                Section("数据") {
+                    NavigationLink {
+                        ReportsView(apiClient: apiClient)
+                    } label: {
+                        Label("用车报告", systemImage: "chart.line.uptrend.xyaxis")
+                    }
+                }
+
+                Section("偏好设置") {
+                    NavigationLink {
+                        SettingsView()
+                    } label: {
+                        Label("设置", systemImage: "gearshape.fill")
+                    }
+                }
+            }
+            .navigationTitle("我的")
+            .navigationBarTitleDisplayMode(.inline)
+        }
+    }
+}
+
+private struct SettingsView: View {
+    @EnvironmentObject private var charging: ChargingActivityManager
+
+    var body: some View {
+        List {
+            Section {
+                Toggle(isOn: Binding(
+                    get: { charging.enabled },
+                    set: { value in Task { await charging.setEnabled(value) } }
+                )) {
+                    Label("灵动岛与锁屏", systemImage: "capsule.portrait")
+                }
+                .tint(CompanionTheme.accent)
+
+                if let error = charging.activityError {
+                    Label(error, systemImage: "exclamationmark.triangle.fill")
+                        .font(.footnote)
+                        .foregroundStyle(.orange)
+                }
+            } header: {
+                Text("实时活动")
+            } footer: {
+                Text("开启后，充电时会在灵动岛与锁屏显示最近电量。App 打开期间每 15 秒刷新；数据超过 2 分钟会标记为待刷新。")
+            }
+        }
+        .navigationTitle("设置")
+        .navigationBarTitleDisplayMode(.inline)
+    }
+}
+
 struct ReportsView: View {
     let apiClient: APIClient
     @State private var report: ReportSummary?
@@ -645,63 +703,61 @@ struct ReportsView: View {
     @State private var anchorDate = Date()
 
     var body: some View {
-        NavigationStack {
-            ZStack {
-                Color(uiColor: .systemGroupedBackground).ignoresSafeArea()
+        ZStack {
+            Color(uiColor: .systemGroupedBackground).ignoresSafeArea()
 
-                ScrollView {
-                    LazyVStack(alignment: .leading, spacing: 20) {
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text("报告中心")
-                                .font(.title2.weight(.bold))
-                            Text("按时间回顾你的真实用车数据")
-                                .font(.subheadline)
+            ScrollView {
+                LazyVStack(alignment: .leading, spacing: 20) {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("报告中心")
+                            .font(.title2.weight(.bold))
+                        Text("按时间回顾你的真实用车数据")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                    }
+
+                    ReportFilterCard(periodKind: $periodKind, anchorDate: $anchorDate) {
+                        Task { await load() }
+                    }
+
+                    ReportPeriodCard(report: report, title: periodTitle)
+
+                    VStack(alignment: .leading, spacing: 12) {
+                        HStack {
+                            Text("深入查看")
+                                .font(.headline)
+                            Spacer()
+                            Text("4 项")
+                                .font(.caption.weight(.semibold))
                                 .foregroundStyle(.secondary)
                         }
 
-                        ReportFilterCard(periodKind: $periodKind, anchorDate: $anchorDate) {
-                            Task { await load() }
-                        }
-
-                        ReportPeriodCard(report: report, title: periodTitle)
-
-                        VStack(alignment: .leading, spacing: 12) {
-                            HStack {
-                                Text("深入查看")
-                                    .font(.headline)
-                                Spacer()
-                                Text("4 项")
-                                    .font(.caption.weight(.semibold))
-                                    .foregroundStyle(.secondary)
-                            }
-
-                            LazyVGrid(columns: [GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12)], spacing: 12) {
-                                ForEach(ReportTemplate.all) { template in
+                        LazyVGrid(columns: [GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12)], spacing: 12) {
+                            ForEach(ReportTemplate.all) { template in
                                 NavigationLink {
                                     ReportDetailView(template: template, report: report)
                                 } label: {
                                     ReportCatalogTile(template: template)
                                 }
                                 .buttonStyle(.plain)
-                                }
                             }
                         }
-
-                        if let message {
-                            Label(message, systemImage: "info.circle")
-                                .font(.footnote)
-                                .foregroundStyle(.secondary)
-                        }
                     }
-                    .padding(.horizontal, 20)
-                    .padding(.top, 16)
-                    .safeAreaPadding(.bottom, 104)
+
+                    if let message {
+                        Label(message, systemImage: "info.circle")
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
+                    }
                 }
+                .padding(.horizontal, 20)
+                .padding(.top, 16)
+                .safeAreaPadding(.bottom, 104)
             }
-            .navigationTitle("报告")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar { Button("刷新", systemImage: "arrow.clockwise") { Task { await load() } } }
         }
+        .navigationTitle("报告")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar { Button("刷新", systemImage: "arrow.clockwise") { Task { await load() } } }
         .task { await load() }
     }
 

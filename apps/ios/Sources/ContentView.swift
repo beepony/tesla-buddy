@@ -21,8 +21,8 @@ struct ContentView: View {
                 .tabItem { Label("充电", systemImage: "bolt.car.fill") }
             ParkingView(apiClient: apiClient)
                 .tabItem { Label("停车", systemImage: "parkingsign.circle.fill") }
-            ReportsView(apiClient: apiClient)
-                .tabItem { Label("报告", systemImage: "chart.line.uptrend.xyaxis") }
+            MyView(apiClient: apiClient)
+                .tabItem { Label("我的", systemImage: "person.crop.circle.fill") }
         }
         .tint(CompanionTheme.accent)
         .frame(maxWidth: .infinity, maxHeight: .infinity)

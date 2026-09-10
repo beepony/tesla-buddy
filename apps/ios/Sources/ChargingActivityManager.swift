@@ -140,16 +140,8 @@ struct CurrentChargingCard: View {
                     Text(charging.loading ? "正在读取车辆充电状态…" : "当前没有进行中的充电，开始充电后打开 App 即可查看。")
                         .font(.subheadline).foregroundStyle(.secondary)
                 }
-                Divider()
-                Toggle(isOn: Binding(get: { charging.enabled }, set: { value in
-                    Task { await charging.setEnabled(value) }
-                })) {
-                    Label("灵动岛与锁屏", systemImage: "capsule.portrait")
-                        .font(.subheadline.weight(.medium))
-                }.tint(CompanionTheme.accent)
-                Text("开启后，App 内每 15 秒刷新。锁屏显示最近电量，超过 2 分钟标记待刷新；点开 App 获取新读数。计时为本次充电连接时长，包含暂停。")
-                    .font(.caption).foregroundStyle(.secondary)
-                if let error = charging.activityError ?? charging.error {
+                if let error = charging.error {
+                    Divider()
                     Text(error).font(.caption).foregroundStyle(.orange)
                 }
             }
