@@ -1,8 +1,8 @@
 # Tesla Buddy
 
-当前版本：**1.2.0 (25)**
+当前版本：**1.4.0 (28)**
 
-本版更新：新增“我的”与设置，合并用车报告入口，将灵动岛开关移至设置；加粗灵动岛信息，优化锁屏实时动态的字号、布局和上下留白。完整记录见 [更新日志](CHANGELOG.md)。
+本版更新：行程详情新增大尺寸轨迹地图，沿 TeslaMate 实际行驶轨迹标记出发地与到达地点；行程与充电统一使用月份汇总与分组卡片，充电记录可按日历或列表浏览。完整记录见 [更新日志](CHANGELOG.md)。
 
 Tesla Buddy 是一套本地优先的私人 Tesla 数据助手。它从家中 Mac mini 上运行的 TeslaMate 读取数据，通过受保护的本地 API 提供给原生 iOS App，不保存 Tesla 登录令牌，也不会直接控制车辆。
 
@@ -10,10 +10,10 @@ iOS App 使用 SwiftUI Scene 生命周期，兼容 iOS 27 的前台窗口管理�
 
 ## 功能
 
-- 概览：车辆状态、电量、续航、累计里程和最后同步时间。
+- 概览：车辆状态、电量、续航、四轮胎压、累计里程和最后同步时间。
 - 车辆软件更新：显示当前系统版本；本车收到 OTA 更新后提示目标版本和更新方法。
-- 行程：按日期浏览驾驶记录，查看距离、时间、能耗、温度与起终点。
-- 充电：查看实时充电状态、历史记录、功率、效率和费用。
+- 行程：按日期浏览驾驶记录，在详情地图中查看实际行驶轨迹、出发地与到达地点，并查看距离、时间、能耗和温度。
+- 充电：查看实时充电状态，按月汇总充入电量、充电时长和费用，并按日历或列表浏览每天的充电记录。
 - 停车：查看当前及历史停车时长和地点。
 - 报告：在“我的 > 用车报告”中汇总周期里程、能耗、充电量和使用成本。
 - 我的与设置：集中提供用车报告和 App 偏好设置。
@@ -51,7 +51,7 @@ docker compose --env-file infra/teslamate/.env \
 
 ## iOS App
 
-App 的底部导航包含“概览”“行程”“充电”“停车”和“我的”。用车报告与设置统一收纳在“我的”中，避免底部菜单过多；充电页专注显示当前状态和历史记录。
+App 的底部导航包含“概览”“行程”“充电”“停车”和“我的”。用车报告与设置统一收纳在“我的”中，避免底部菜单过多；充电页显示当前充电状态，并按月份汇总和浏览历史记录。
 
 将 `apps/ios/Config/LocalSecrets.swift.example` 复制到 `apps/ios/Sources/LocalSecrets.swift`，填入与服务端一致的 API token，然后生成并打开工程：
 
@@ -85,6 +85,7 @@ xcodebuild -project apps/ios/TeslaCompanion.xcodeproj \
 - [产品需求说明](docs/PRD.md)
 - [本地开发与 TeslaMate 接入](docs/LOCAL_SETUP.md)
 - [车辆软件更新提示](docs/SOFTWARE_UPDATES.md)
+- [电池健康度数据可用性调研](docs/research/battery-health-data.md)
 - [报告口径](docs/REPORTS.md)
 - [充电 Live Activity](docs/charging-live-activity.md)
 

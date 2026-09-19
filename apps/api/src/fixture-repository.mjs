@@ -10,6 +10,11 @@ const vehicle = {
   estimatedRangeKm: 286,
   estimatedMaxRangeKm: 420,
   estimatedBatteryCapacityKwh: 78.4,
+  tirePressureFrontLeftBar: 2.8,
+  tirePressureFrontRightBar: 2.9,
+  tirePressureRearLeftBar: 2.7,
+  tirePressureRearRightBar: 2.8,
+  tirePressureUpdatedAt: isoMinutesAgo(8),
   odometerKm: 28_416.7,
   softwareVersion: "2026.8.3.6",
   updateStatus: "unknown",
@@ -22,15 +27,34 @@ const drives = [
     id: "drive-20260725-01", vehicleId: vehicle.id, startedAt: "2026-07-25T09:10:00Z",
     endedAt: "2026-07-25T09:52:00Z", distanceKm: 31.8, durationMinutes: 42,
     energyUsedKwh: 4.92, averageConsumptionWhPerKm: 155, startSocPercent: 72,
-    endSocPercent: 65, startAddress: "静安区", endAddress: "浦东新区"
+    endSocPercent: 65, startAddress: "静安区", endAddress: "浦东新区",
+    startLocationName: "静安区", endLocationName: "浦东新区",
+    startLocation: { latitude: 31.2304, longitude: 121.4737 },
+    endLocation: { latitude: 31.221, longitude: 121.544 }
   },
   {
     id: "drive-20260724-01", vehicleId: vehicle.id, startedAt: "2026-07-24T10:30:00Z",
     endedAt: "2026-07-24T11:08:00Z", distanceKm: 24.3, durationMinutes: 38,
     energyUsedKwh: 3.94, averageConsumptionWhPerKm: 162, startSocPercent: 80,
-    endSocPercent: 74, startAddress: "浦东新区", endAddress: "徐汇区"
+    endSocPercent: 74, startAddress: "浦东新区", endAddress: "徐汇区",
+    startLocationName: "浦东新区", endLocationName: "徐汇区",
+    startLocation: { latitude: 31.221, longitude: 121.544 },
+    endLocation: { latitude: 31.188, longitude: 121.437 }
   }
 ];
+
+const driveRoutes = {
+  "drive-20260725-01": [
+    { latitude: 31.2304, longitude: 121.4737 },
+    { latitude: 31.2258, longitude: 121.5012 },
+    { latitude: 31.221, longitude: 121.544 }
+  ],
+  "drive-20260724-01": [
+    { latitude: 31.221, longitude: 121.544 },
+    { latitude: 31.205, longitude: 121.489 },
+    { latitude: 31.188, longitude: 121.437 }
+  ]
+};
 
 const charges = [
   {
@@ -61,7 +85,10 @@ export class FixtureRepository {
   async listVehicles() { return [vehicle]; }
   async getOverview(id) { return id === vehicle.id ? vehicle : null; }
   async listDrives(id) { return id === vehicle.id ? drives : []; }
-  async getDrive(id) { return drives.find((drive) => drive.id === id) ?? null; }
+  async getDrive(id) {
+    const drive = drives.find((item) => item.id === id);
+    return drive ? { ...drive, route: driveRoutes[id] ?? [] } : null;
+  }
   async listParkingSessions(id) { return id === vehicle.id ? parkingSessions : []; }
   async getChargingStatus() { return null; }
   async listCharges(id) { return id === vehicle.id ? charges : []; }

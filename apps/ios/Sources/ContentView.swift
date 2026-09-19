@@ -100,6 +100,11 @@ struct OverviewView: View {
 
                 VehicleDashboardCard(vehicle: vehicle)
 
+                VStack(alignment: .leading, spacing: 10) {
+                    SectionTitle("胎压", detail: tirePressureDetail(for: vehicle))
+                    TirePressureCard(vehicle: vehicle)
+                }
+
                 if let errorMessage {
                     Label("刷新失败，当前显示上次数据。\(errorMessage)", systemImage: "wifi.exclamationmark")
                         .font(.caption)
@@ -112,7 +117,7 @@ struct OverviewView: View {
                         columns: [GridItem(.flexible(), spacing: 10), GridItem(.flexible(), spacing: 10)],
                         spacing: 10
                     ) {
-                        MetricTile(icon: "battery.100percent", title: "电池容量", value: vehicle.estimatedBatteryCapacityKwh.map { "\($0.formatted(.number.precision(.fractionLength(1)))) kWh" } ?? "—", detail: "充电数据估算")
+                        MetricTile(icon: "battery.100percent", title: "估算可用容量", value: vehicle.estimatedBatteryCapacityKwh.map { "\($0.formatted(.number.precision(.fractionLength(1)))) kWh" } ?? "—", detail: "基于 TeslaMate 充电数据")
                         MetricTile(icon: "road.lanes", title: "最大续航", value: vehicle.estimatedMaxRangeKm.map { "\($0.formatted(.number.precision(.fractionLength(0)))) km" } ?? "—", detail: "按当前电量外推")
                         MetricTile(icon: "gauge.with.dots.needle.67percent", title: "累计里程", value: vehicle.odometerKm.map { "\($0.formatted(.number.precision(.fractionLength(0)))) km" } ?? "—", detail: "总行驶距离")
                         Button { showingSoftwareUpdate = true } label: {
@@ -132,6 +137,11 @@ struct OverviewView: View {
             .padding(.vertical, 12)
         }
         .refreshable { await loadOverview() }
+    }
+
+    private func tirePressureDetail(for vehicle: VehicleOverview) -> String {
+        let update = vehicle.tirePressureUpdatedAt?.formatted(.relative(presentation: .named)) ?? "车辆唤醒后更新"
+        return "\(update) · bar"
     }
 
     @MainActor
@@ -162,6 +172,91 @@ struct OverviewView: View {
         default:
             return error.localizedDescription
         }
+    }
+}
+
+private struct TirePressureCard: View {
+    let vehicle: VehicleOverview
+
+    var body: some View {
+        HStack(spacing: 12) {
+            VStack(spacing: 18) {
+                TirePressureReading(title: "左前", value: vehicle.tirePressureFrontLeftBar)
+                TirePressureReading(title: "左后", value: vehicle.tirePressureRearLeftBar)
+            }
+
+            VStack(spacing: 7) {
+                Text("车头")
+                    .font(.caption2.weight(.medium))
+                    .foregroundStyle(.tertiary)
+                TireCarSilhouette()
+                    .frame(maxHeight: .infinity)
+                Text("车尾")
+                    .font(.caption2.weight(.medium))
+                    .foregroundStyle(.tertiary)
+            }
+            .frame(maxWidth: .infinity)
+
+            VStack(spacing: 18) {
+                TirePressureReading(title: "右前", value: vehicle.tirePressureFrontRightBar)
+                TirePressureReading(title: "右后", value: vehicle.tirePressureRearRightBar)
+            }
+        }
+        .padding(14)
+        .frame(maxWidth: .infinity)
+        .background(.background, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: 18, style: .continuous).stroke(.primary.opacity(0.05)))
+        .accessibilityElement(children: .combine)
+    }
+}
+
+private struct TireCarSilhouette: View {
+    var body: some View {
+        ZStack {
+            ForEach([-1.0, 1.0], id: \.self) { horizontal in
+                ForEach([-1.0, 1.0], id: \.self) { vertical in
+                    Capsule()
+                        .fill(Color.primary.opacity(0.5))
+                        .frame(width: 7, height: 21)
+                        .offset(x: horizontal * 23, y: vertical * 27)
+                }
+            }
+
+            RoundedRectangle(cornerRadius: 15, style: .continuous)
+                .fill(CompanionTheme.accent)
+                .frame(width: 42, height: 88)
+
+            VStack(spacing: 30) {
+                RoundedRectangle(cornerRadius: 5, style: .continuous)
+                    .fill(.white.opacity(0.62))
+                    .frame(width: 27, height: 14)
+                RoundedRectangle(cornerRadius: 5, style: .continuous)
+                    .fill(.white.opacity(0.46))
+                    .frame(width: 27, height: 12)
+            }
+        }
+        .frame(width: 62, height: 98)
+        .accessibilityHidden(true)
+    }
+}
+
+private struct TirePressureReading: View {
+    let title: String
+    let value: Double?
+
+    var body: some View {
+        VStack(spacing: 4) {
+            Text(value.map { $0.formatted(.number.precision(.fractionLength(1))) } ?? "—")
+                .font(.title3.weight(.bold))
+                .monospacedDigit()
+                .contentTransition(.numericText())
+            Text(title)
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(.secondary)
+        }
+        .frame(maxWidth: .infinity, minHeight: 50)
+        .padding(.vertical, 7)
+        .background(CompanionTheme.accent.opacity(0.08), in: RoundedRectangle(cornerRadius: 13, style: .continuous))
     }
 }
 

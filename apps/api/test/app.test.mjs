@@ -20,6 +20,15 @@ test("returns the demo vehicle overview", async () => {
   const { status, body } = await request("/v1/vehicles/demo-model-y/overview");
   assert.equal(status, 200);
   assert.equal(body.data.batteryLevelPercent, 68);
+  assert.deepEqual(
+    {
+      frontLeft: body.data.tirePressureFrontLeftBar,
+      frontRight: body.data.tirePressureFrontRightBar,
+      rearLeft: body.data.tirePressureRearLeftBar,
+      rearRight: body.data.tirePressureRearRightBar
+    },
+    { frontLeft: 2.8, frontRight: 2.9, rearLeft: 2.7, rearRight: 2.8 }
+  );
 });
 
 test("vehicle list and overview expose updates without bypassing authentication or missing vehicles", async () => {

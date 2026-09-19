@@ -13,6 +13,11 @@ struct VehicleOverview: Decodable, Identifiable {
     let estimatedRangeKm: Double?
     let estimatedMaxRangeKm: Double?
     let estimatedBatteryCapacityKwh: Double?
+    let tirePressureFrontLeftBar: Double?
+    let tirePressureFrontRightBar: Double?
+    let tirePressureRearLeftBar: Double?
+    let tirePressureRearRightBar: Double?
+    let tirePressureUpdatedAt: Date?
     let odometerKm: Double?
     let softwareVersion: String?
     let updateStatus: String?
@@ -52,6 +57,7 @@ struct Drive: Decodable, Identifiable {
     let endLocationName: String
     let startLocation: DriveLocation?
     let endLocation: DriveLocation?
+    let route: [DriveLocation]?
 }
 
 struct DriveLocation: Decodable {

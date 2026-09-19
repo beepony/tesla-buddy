@@ -26,6 +26,11 @@ function vehicle(row) {
     estimatedRangeKm: number(row.estimated_range_km),
     estimatedMaxRangeKm: number(row.estimated_max_range_km),
     estimatedBatteryCapacityKwh: number(row.estimated_battery_capacity_kwh),
+    tirePressureFrontLeftBar: number(row.tire_pressure_fl),
+    tirePressureFrontRightBar: number(row.tire_pressure_fr),
+    tirePressureRearLeftBar: number(row.tire_pressure_rl),
+    tirePressureRearRightBar: number(row.tire_pressure_rr),
+    tirePressureUpdatedAt: row.tire_pressure_updated_at,
     odometerKm: number(row.odometer_km),
     softwareVersion: row.software_version,
     updateStatus: row.update_status,
@@ -45,6 +50,11 @@ export class PostgresRepository {
       SELECT c.id, c.name AS display_name, c.marketing_name, c.model,
              p.battery_level, p.est_battery_range_km AS estimated_range_km,
              CASE WHEN p.usable_battery_level > 0 THEN p.est_battery_range_km / p.usable_battery_level * 100 END AS estimated_max_range_km,
+             tire.tpms_pressure_fl AS tire_pressure_fl,
+             tire.tpms_pressure_fr AS tire_pressure_fr,
+             tire.tpms_pressure_rl AS tire_pressure_rl,
+             tire.tpms_pressure_rr AS tire_pressure_rr,
+             tire.date AS tire_pressure_updated_at,
              p.odometer AS odometer_km, p.date AS last_updated_at, p.latitude, p.longitude,
              s.state, u.version AS software_version,
              CASE WHEN u.version IS NULL THEN 'unavailable' ELSE 'unknown' END AS update_status,
@@ -53,6 +63,14 @@ export class PostgresRepository {
       LEFT JOIN LATERAL (SELECT * FROM positions WHERE car_id = c.id ORDER BY date DESC LIMIT 1) p ON true
       LEFT JOIN LATERAL (SELECT state FROM states WHERE car_id = c.id ORDER BY start_date DESC LIMIT 1) s ON true
       LEFT JOIN LATERAL (SELECT version FROM updates WHERE car_id = c.id ORDER BY start_date DESC LIMIT 1) u ON true
+      LEFT JOIN LATERAL (
+        SELECT date, tpms_pressure_fl, tpms_pressure_fr, tpms_pressure_rl, tpms_pressure_rr
+        FROM positions
+        WHERE car_id = c.id
+          AND (tpms_pressure_fl IS NOT NULL OR tpms_pressure_fr IS NOT NULL
+            OR tpms_pressure_rl IS NOT NULL OR tpms_pressure_rr IS NOT NULL)
+        ORDER BY date DESC LIMIT 1
+      ) tire ON true
       LEFT JOIN LATERAL (
         SELECT charge_energy_added / NULLIF(end_battery_level - start_battery_level, 0) * 100 AS estimated_battery_capacity_kwh
         FROM charging_processes
@@ -73,7 +91,7 @@ export class PostgresRepository {
     return vehicles.find((item) => item.id === String(id)) ?? null;
   }
 
-  async listDrives(vehicleId, periodStart = null, periodEnd = null) {
+  async listDrives(vehicleId, periodStart = null, periodEnd = null, driveId = null) {
     const { rows } = await this.pool.query(`
       SELECT d.id, d.car_id, d.start_date AS started_at, d.end_date AS ended_at,
              d.distance AS distance_km, d.duration_min AS duration_minutes,
@@ -110,8 +128,9 @@ export class PostgresRepository {
       WHERE d.car_id = $1
         AND ($2::timestamptz IS NULL OR d.start_date >= ($2::timestamptz AT TIME ZONE 'UTC'))
         AND ($3::timestamptz IS NULL OR d.start_date < ($3::timestamptz AT TIME ZONE 'UTC'))
+        AND ($4::bigint IS NULL OR d.id = $4)
       ORDER BY d.start_date DESC
-      LIMIT 200`, [vehicleId, periodStart, periodEnd]);
+      LIMIT 200`, [vehicleId, periodStart, periodEnd, driveId]);
     return rows.map((row) => ({
       id: String(row.id),
       vehicleId: String(row.car_id),
@@ -140,8 +159,29 @@ export class PostgresRepository {
   async getDrive(id) {
     const { rows } = await this.pool.query("SELECT car_id FROM drives WHERE id = $1", [id]);
     if (!rows[0]) return null;
-    const drives = await this.listDrives(rows[0].car_id);
-    return drives.find((drive) => drive.id === String(id)) ?? null;
+    const [drive] = await this.listDrives(rows[0].car_id, null, null, id);
+    if (!drive) return null;
+    const route = await this.pool.query(`
+      WITH ordered_route AS (
+        SELECT latitude, longitude, date,
+               ROW_NUMBER() OVER (ORDER BY date) AS point_number,
+               COUNT(*) OVER () AS point_count
+        FROM positions
+        WHERE drive_id = $1 AND latitude IS NOT NULL AND longitude IS NOT NULL
+      )
+      SELECT latitude, longitude
+      FROM ordered_route
+      WHERE point_number = 1
+         OR point_number = point_count
+         OR MOD(point_number - 1, GREATEST(CEIL(point_count / 800.0)::bigint, 1)) = 0
+      ORDER BY date`, [id]);
+    return {
+      ...drive,
+      route: route.rows.map((position) => ({
+        latitude: number(position.latitude),
+        longitude: number(position.longitude)
+      }))
+    };
   }
 
   async listParkingSessions(vehicleId) {

@@ -18,6 +18,22 @@ private func chineseDateTime(_ date: Date) -> String {
     return formatter.string(from: date)
 }
 
+private func durationText(_ minutes: Int) -> String {
+    if minutes >= 60 {
+        let hours = minutes / 60
+        let remainder = minutes % 60
+        return remainder == 0 ? "\(hours)小时" : "\(hours)小时\(remainder)分"
+    }
+    return "\(minutes)分钟"
+}
+
+private func dayTitle(_ date: Date) -> String {
+    let formatter = DateFormatter()
+    formatter.locale = Locale(identifier: "zh_CN")
+    formatter.dateFormat = "M月d日 EEEE"
+    return formatter.string(from: date)
+}
+
 struct DrivesView: View {
     let apiClient: APIClient
     @State private var drives: [Drive] = []
@@ -50,7 +66,9 @@ struct DrivesView: View {
                                 .background(.background, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
                                 .overlay(RoundedRectangle(cornerRadius: 20, style: .continuous).stroke(.primary.opacity(0.05)))
 
-                            MonthCalendarView(month: visibleMonth, drives: monthDrives)
+                            MonthCalendarView(month: visibleMonth, eventCount: { drives(on: $0).count }) { date in
+                                DailyDrivesView(date: date, drives: drives(on: date), apiClient: apiClient)
+                            }
 
                             if let message {
                                 Label(message, systemImage: "exclamationmark.triangle.fill")
@@ -63,7 +81,7 @@ struct DrivesView: View {
                     }
                     .background(Color(uiColor: .systemGroupedBackground))
                 } else {
-                    VisitedPlacesMap(drives: monthDrives)
+                    VisitedPlacesMap(drives: monthDrives, apiClient: apiClient)
                 }
             }
             .navigationTitle("行程")
@@ -74,7 +92,7 @@ struct DrivesView: View {
     }
 
     private var monthDrives: [Drive] {
-        let interval = driveCalendar.dateInterval(of: .month, for: visibleMonth)!
+        let interval = historyCalendar.dateInterval(of: .month, for: visibleMonth)!
         return drives.filter { interval.contains($0.startedAt) }
     }
 
@@ -83,6 +101,10 @@ struct DrivesView: View {
         formatter.locale = Locale(identifier: "zh_CN")
         formatter.dateFormat = "yyyy年M月"
         return formatter.string(from: visibleMonth)
+    }
+
+    private func drives(on date: Date) -> [Drive] {
+        monthDrives.filter { historyCalendar.isDate($0.startedAt, inSameDayAs: date) }
     }
 
     @MainActor private func load() async {
@@ -105,7 +127,7 @@ private enum DrivePresentation: String, CaseIterable, Identifiable {
     var icon: String { self == .calendar ? "calendar" : "map.fill" }
 }
 
-private var driveCalendar: Calendar {
+private var historyCalendar: Calendar {
     var calendar = Calendar(identifier: .gregorian)
     calendar.locale = Locale(identifier: "zh_CN")
     calendar.firstWeekday = 2
@@ -140,30 +162,40 @@ private struct MonthNavigationHeader: View {
     }
 
     private func moveMonth(_ offset: Int) {
-        visibleMonth = driveCalendar.date(byAdding: .month, value: offset, to: visibleMonth) ?? visibleMonth
+        visibleMonth = historyCalendar.date(byAdding: .month, value: offset, to: visibleMonth) ?? visibleMonth
     }
 }
 
-private struct MonthCalendarView: View {
+private struct MonthCalendarView<Destination: View>: View {
     let month: Date
-    let drives: [Drive]
+    let eventCount: (Date) -> Int
+    let tint: Color
+    let destination: (Date) -> Destination
     private let weekdays = ["一", "二", "三", "四", "五", "六", "日"]
 
+    init(
+        month: Date,
+        eventCount: @escaping (Date) -> Int,
+        tint: Color = CompanionTheme.accent,
+        @ViewBuilder destination: @escaping (Date) -> Destination
+    ) {
+        self.month = month
+        self.eventCount = eventCount
+        self.tint = tint
+        self.destination = destination
+    }
+
     private var days: [Date?] {
-        guard let interval = driveCalendar.dateInterval(of: .month, for: month),
-              let dayRange = driveCalendar.range(of: .day, in: .month, for: month) else { return [] }
-        let weekday = driveCalendar.component(.weekday, from: interval.start)
-        let leading = (weekday - driveCalendar.firstWeekday + 7) % 7
+        guard let interval = historyCalendar.dateInterval(of: .month, for: month),
+              let dayRange = historyCalendar.range(of: .day, in: .month, for: month) else { return [] }
+        let weekday = historyCalendar.component(.weekday, from: interval.start)
+        let leading = (weekday - historyCalendar.firstWeekday + 7) % 7
         var values = Array<Date?>(repeating: nil, count: leading)
         values.append(contentsOf: dayRange.compactMap { day in
-            driveCalendar.date(byAdding: .day, value: day - 1, to: interval.start)
+            historyCalendar.date(byAdding: .day, value: day - 1, to: interval.start)
         })
         while values.count % 7 != 0 { values.append(nil) }
         return values
-    }
-
-    private func drives(on date: Date) -> [Drive] {
-        drives.filter { driveCalendar.isDate($0.startedAt, inSameDayAs: date) }
     }
 
     var body: some View {
@@ -178,11 +210,10 @@ private struct MonthCalendarView: View {
 
                 ForEach(Array(days.enumerated()), id: \.offset) { _, date in
                     if let date {
-                        let dayDrives = drives(on: date)
                         NavigationLink {
-                            DailyDrivesView(date: date, drives: dayDrives)
+                            destination(date)
                         } label: {
-                            CalendarDayCell(date: date, tripCount: dayDrives.count)
+                            CalendarDayCell(date: date, eventCount: eventCount(date), tint: tint)
                         }
                         .buttonStyle(.plain)
                     } else {
@@ -199,26 +230,27 @@ private struct MonthCalendarView: View {
 
 private struct CalendarDayCell: View {
     let date: Date
-    let tripCount: Int
+    let eventCount: Int
+    var tint: Color = CompanionTheme.accent
 
-    private var isToday: Bool { driveCalendar.isDateInToday(date) }
+    private var isToday: Bool { historyCalendar.isDateInToday(date) }
 
     var body: some View {
         VStack(spacing: 4) {
-            Text("\(driveCalendar.component(.day, from: date))")
+            Text("\(historyCalendar.component(.day, from: date))")
                 .font(.subheadline.weight(isToday ? .bold : .medium))
                 .foregroundStyle(isToday ? .white : .primary)
                 .frame(width: 30, height: 30)
                 .background(isToday ? Color.red : Color.clear, in: Circle())
 
-            if tripCount > 0 {
+            if eventCount > 0 {
                 HStack(spacing: 3) {
                     Circle()
-                        .fill(CompanionTheme.accent)
+                        .fill(tint)
                         .frame(width: 5, height: 5)
-                    Text("\(tripCount)")
+                    Text("\(eventCount)")
                         .font(.system(size: 9, weight: .semibold))
-                        .foregroundStyle(CompanionTheme.accent)
+                        .foregroundStyle(tint)
                 }
             } else {
                 Color.clear.frame(height: 9)
@@ -232,13 +264,9 @@ private struct CalendarDayCell: View {
 private struct DailyDrivesView: View {
     let date: Date
     let drives: [Drive]
+    let apiClient: APIClient
 
-    private var title: String {
-        let formatter = DateFormatter()
-        formatter.locale = Locale(identifier: "zh_CN")
-        formatter.dateFormat = "M月d日 EEEE"
-        return formatter.string(from: date)
-    }
+    private var title: String { dayTitle(date) }
 
     var body: some View {
         List {
@@ -254,7 +282,7 @@ private struct DailyDrivesView: View {
                 Section("行程明细 · \(drives.count) 次") {
                     ForEach(drives) { drive in
                         NavigationLink {
-                            DriveDetailView(drive: drive)
+                            DriveDetailView(drive: drive, apiClient: apiClient)
                         } label: {
                             DriveRow(drive: drive)
                         }
@@ -286,11 +314,11 @@ private struct DrivePeriodSummary: View {
                     .foregroundStyle(.secondary)
             }
             HStack(spacing: 0) {
-                TripMetric(value: "\(distance.formatted(.number.precision(.fractionLength(1)))) km", label: "行驶距离")
+                SummaryMetric(value: "\(distance.formatted(.number.precision(.fractionLength(1)))) km", label: "行驶距离")
                 Divider().padding(.horizontal, 10)
-                TripMetric(value: driveDuration(minutes), label: "驾驶时间")
+                SummaryMetric(value: durationText(minutes), label: "驾驶时间")
                 Divider().padding(.horizontal, 10)
-                TripMetric(value: "\(energy.formatted(.number.precision(.fractionLength(2)))) kWh", label: "累计耗电")
+                SummaryMetric(value: "\(energy.formatted(.number.precision(.fractionLength(2)))) kWh", label: "累计耗电")
             }
         }
         .padding(.vertical, 6)
@@ -314,11 +342,11 @@ private struct DriveRow: View {
                 .font(.caption)
                 .foregroundStyle(.secondary)
             HStack(spacing: 0) {
-                TripMetric(value: drive.energyUsedKwh.map { "\($0.formatted(.number.precision(.fractionLength(2)))) kWh" } ?? "—", label: "本次耗电")
+                SummaryMetric(value: drive.energyUsedKwh.map { "\($0.formatted(.number.precision(.fractionLength(2)))) kWh" } ?? "—", label: "本次耗电")
                 Divider().padding(.horizontal, 12)
-                TripMetric(value: drive.averageConsumptionWhPerKm.map { "\($0) Wh/km" } ?? "—", label: "平均能耗")
+                SummaryMetric(value: drive.averageConsumptionWhPerKm.map { "\($0) Wh/km" } ?? "—", label: "平均能耗")
                 Divider().padding(.horizontal, 12)
-                TripMetric(value: "\(drive.distanceKm.formatted(.number.precision(.fractionLength(1)))) km", label: "行驶距离")
+                SummaryMetric(value: "\(drive.distanceKm.formatted(.number.precision(.fractionLength(1)))) km", label: "行驶距离")
             }
         }
         .padding(.vertical, 6)
@@ -334,6 +362,7 @@ private struct VisitedPlace: Identifiable {
 
 private struct VisitedPlacesMap: View {
     let drives: [Drive]
+    let apiClient: APIClient
     @State private var position: MapCameraPosition = .automatic
     @State private var selectedPlaceID: String?
     @State private var selectedPlace: VisitedPlace?
@@ -386,7 +415,7 @@ private struct VisitedPlacesMap: View {
                 position = .automatic
             }
             .sheet(item: $selectedPlace, onDismiss: { selectedPlaceID = nil }) { place in
-                VisitedPlaceTripsView(place: place)
+                VisitedPlaceTripsView(place: place, apiClient: apiClient)
             }
         }
     }
@@ -394,13 +423,14 @@ private struct VisitedPlacesMap: View {
 
 private struct VisitedPlaceTripsView: View {
     let place: VisitedPlace
+    let apiClient: APIClient
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
         NavigationStack {
             List(place.drives) { drive in
                 NavigationLink {
-                    DriveDetailView(drive: drive)
+                    DriveDetailView(drive: drive, apiClient: apiClient)
                 } label: {
                     DriveRow(drive: drive)
                 }
@@ -412,72 +442,325 @@ private struct VisitedPlaceTripsView: View {
     }
 }
 
-private func driveDuration(_ minutes: Int) -> String {
-    if minutes >= 60 { return "\(minutes / 60)小时\(minutes % 60)分" }
-    return "\(minutes)分钟"
-}
-
 private struct DriveDetailView: View {
     let drive: Drive
+    let apiClient: APIClient
     @Environment(\.openURL) private var openURL
     @State private var mapTarget: MapTarget?
+    @State private var detailedDrive: Drive?
+    @State private var isLoadingRoute = true
+    @State private var routeMessage: String?
+
+    private var displayedDrive: Drive { detailedDrive ?? drive }
+    private var routeStartLocation: DriveLocation? { displayedDrive.route?.first ?? displayedDrive.startLocation }
+    private var routeEndLocation: DriveLocation? { displayedDrive.route?.last ?? displayedDrive.endLocation }
 
     var body: some View {
-        List {
-            Section {
-                HStack(spacing: 0) {
-                    TripMetric(value: drive.energyUsedKwh.map { "\($0.formatted(.number.precision(.fractionLength(2)))) kWh" } ?? "—", label: "本次耗电")
-                    Divider().padding(.horizontal, 12)
-                    TripMetric(value: drive.averageConsumptionWhPerKm.map { "\($0) Wh/km" } ?? "—", label: "平均能耗")
+        ScrollView {
+            LazyVStack(spacing: 18) {
+                HStack {
+                    Label("行程轨迹", systemImage: "map.fill")
+                        .font(.headline.weight(.bold))
+                    Spacer()
+                    Text("\(drive.distanceKm.formatted(.number.precision(.fractionLength(1)))) km")
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(.secondary)
                 }
-                .padding(.vertical, 8)
+
+                if isLoadingRoute {
+                    ProgressView("正在加载行程轨迹…")
+                        .frame(maxWidth: .infinity, minHeight: 400)
+                        .background(.background, in: RoundedRectangle(cornerRadius: 24, style: .continuous))
+                } else {
+                    DriveRouteMap(drive: displayedDrive)
+                        .frame(height: 400)
+                        .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+                        .overlay(RoundedRectangle(cornerRadius: 24, style: .continuous).stroke(.primary.opacity(0.06)))
+                    if let routeMessage {
+                        Label(routeMessage, systemImage: "info.circle")
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+
+                RouteTimelineCard(
+                    drive: drive,
+                    startLocation: routeStartLocation,
+                    endLocation: routeEndLocation,
+                    onSelectLocation: { name, location in mapTarget = MapTarget(name: name, location: location) }
+                )
+
+                DetailCard(title: "行程概览", icon: "steeringwheel") {
+                    LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
+                        DetailMetricTile(icon: "road.lanes", title: "行驶距离", value: "\(drive.distanceKm.formatted(.number.precision(.fractionLength(1)))) km")
+                        DetailMetricTile(icon: "clock.fill", title: "驾驶时间", value: durationText(drive.durationMinutes))
+                        DetailMetricTile(icon: "bolt.fill", title: "本次耗电", value: drive.energyUsedKwh.map { "\($0.formatted(.number.precision(.fractionLength(2)))) kWh" } ?? "—")
+                        DetailMetricTile(icon: "gauge.with.dots.needle.67percent", title: "平均能耗", value: drive.averageConsumptionWhPerKm.map { "\($0) Wh/km" } ?? "—")
+                    }
+                }
+
+                DetailCard(title: "车辆表现", icon: "car.fill") {
+                    DetailFactGrid {
+                        if let start = drive.startSocPercent, let end = drive.endSocPercent {
+                            DetailFact(icon: "battery.75percent", label: "电量变化", value: "\(start)% → \(end)%")
+                        }
+                        if let speed = drive.maxSpeedKph {
+                            DetailFact(icon: "speedometer", label: "最高速度", value: "\(speed.formatted(.number.precision(.fractionLength(0)))) km/h")
+                        }
+                        if let ascent = drive.ascentMeters {
+                            DetailFact(icon: "arrow.up.right", label: "累计爬升", value: "\(ascent.formatted(.number.precision(.fractionLength(0)))) m")
+                        }
+                        if let descent = drive.descentMeters {
+                            DetailFact(icon: "arrow.down.right", label: "累计下降", value: "\(descent.formatted(.number.precision(.fractionLength(0)))) m")
+                        }
+                    }
+                }
+
+                if drive.outsideTempCelsius != nil || drive.insideTempCelsius != nil {
+                    DetailCard(title: "环境", icon: "thermometer.medium") {
+                        DetailFactGrid {
+                            if let temperature = drive.outsideTempCelsius {
+                                DetailFact(icon: "sun.max.fill", label: "平均室外温度", value: "\(temperature.formatted(.number.precision(.fractionLength(1)))) ℃")
+                            }
+                            if let temperature = drive.insideTempCelsius {
+                                DetailFact(icon: "car.side.fill", label: "平均车内温度", value: "\(temperature.formatted(.number.precision(.fractionLength(1)))) ℃")
+                            }
+                        }
+                    }
+                }
             }
-            Section("路线") {
-                locationButton(title: "出发地", name: drive.startLocationName, icon: "circle.fill", color: .green, location: drive.startLocation)
-                locationButton(title: "目的地", name: drive.endLocationName, icon: "mappin.circle.fill", color: CompanionTheme.accent, location: drive.endLocation)
-                LabeledContent("出发时间", value: chineseDateTime(drive.startedAt))
-                LabeledContent("到达时间", value: chineseDateTime(drive.endedAt))
-            }
-            Section("本段驾驶") {
-                LabeledContent("行驶距离", value: "\(drive.distanceKm.formatted(.number.precision(.fractionLength(1)))) km")
-                LabeledContent("用时", value: "\(drive.durationMinutes) 分钟")
-                if let energy = drive.energyUsedKwh { LabeledContent("本次耗电", value: "\(energy.formatted(.number.precision(.fractionLength(2)))) kWh") }
-                if let consumption = drive.averageConsumptionWhPerKm { LabeledContent("平均能耗", value: "\(consumption) Wh/km") }
-            }
-            Section("车辆与环境") {
-                if let start = drive.startSocPercent, let end = drive.endSocPercent { LabeledContent("电量", value: "\(start)% → \(end)%") }
-                if let temperature = drive.outsideTempCelsius { LabeledContent("平均室外温度", value: "\(temperature.formatted(.number.precision(.fractionLength(1)))) ℃") }
-                if let temperature = drive.insideTempCelsius { LabeledContent("平均车内温度", value: "\(temperature.formatted(.number.precision(.fractionLength(1)))) ℃") }
-                if let speed = drive.maxSpeedKph { LabeledContent("最高速度", value: "\(speed.formatted(.number.precision(.fractionLength(0)))) km/h") }
-                if let ascent = drive.ascentMeters { LabeledContent("累计爬升", value: "\(ascent.formatted(.number.precision(.fractionLength(0)))) m") }
-            }
+            .padding(.horizontal, 16)
+            .padding(.top, 12)
+            .padding(.bottom, 32)
         }
+        .background(Color(uiColor: .systemGroupedBackground))
         .navigationTitle("行程详情")
         .navigationBarTitleDisplayMode(.inline)
+        .task(id: drive.id) { await loadDetail() }
         .confirmationDialog("打开地图", isPresented: Binding(get: { mapTarget != nil }, set: { if !$0 { mapTarget = nil } }), titleVisibility: .visible) {
             Button("Apple 地图") { if let mapTarget { openURL(mapTarget.appleMapsURL) } }
             Button("高德地图") { if let mapTarget { openURL(mapTarget.amapURL) } }
         }
     }
 
-    @ViewBuilder private func locationButton(title: String, name: String, icon: String, color: Color, location: DriveLocation?) -> some View {
-        if let location {
-            Button { mapTarget = MapTarget(name: name, location: location) } label: {
-                HStack {
-                    Text(title).foregroundStyle(.primary)
-                    Spacer()
-                    Image(systemName: icon).foregroundStyle(color)
-                    Text(name).foregroundStyle(CompanionTheme.accent)
-                    Image(systemName: "map").font(.caption).foregroundStyle(.secondary)
+    @MainActor private func loadDetail() async {
+        isLoadingRoute = true
+        defer { isLoadingRoute = false }
+        do {
+            let detail = try await apiClient.get("/v1/drives/\(drive.id)", as: Drive.self)
+            detailedDrive = detail
+            routeMessage = (detail.route?.count ?? 0) >= 2 ? nil : "TeslaMate 未记录完整轨迹，地图仅展示已有位置。"
+        } catch {
+            routeMessage = "无法读取行程轨迹，地图仅展示已有位置。"
+        }
+    }
+
+}
+
+private struct DetailCard<Content: View>: View {
+    let title: String
+    let icon: String
+    @ViewBuilder let content: Content
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Label(title, systemImage: icon)
+                .font(.headline.weight(.bold))
+                .foregroundStyle(.primary)
+            content
+        }
+        .padding(18)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(.background, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: 22, style: .continuous).stroke(.primary.opacity(0.05)))
+    }
+}
+
+private struct RouteTimelineCard: View {
+    let drive: Drive
+    let startLocation: DriveLocation?
+    let endLocation: DriveLocation?
+    let onSelectLocation: (String, DriveLocation) -> Void
+
+    var body: some View {
+        DetailCard(title: "路线", icon: "point.topleft.down.to.point.bottomright.curvepath") {
+            VStack(spacing: 0) {
+                RouteStopRow(title: "出发", name: drive.startLocationName, time: chineseDateTime(drive.startedAt), color: .green, location: startLocation, onSelect: onSelectLocation)
+                HStack(spacing: 14) {
+                    Rectangle().fill(.secondary.opacity(0.25)).frame(width: 2, height: 26).padding(.leading, 8)
+                    Divider()
                 }
+                RouteStopRow(title: "到达", name: drive.endLocationName, time: chineseDateTime(drive.endedAt), color: CompanionTheme.accent, location: endLocation, onSelect: onSelectLocation)
             }
-        } else {
-            LabeledContent(title, value: name)
         }
     }
 }
 
-private struct TripMetric: View {
+private struct RouteStopRow: View {
+    let title: String
+    let name: String
+    let time: String
+    let color: Color
+    let location: DriveLocation?
+    let onSelect: (String, DriveLocation) -> Void
+
+    var body: some View {
+        Button {
+            if let location { onSelect(name, location) }
+        } label: {
+            HStack(spacing: 14) {
+                Circle().fill(color).frame(width: 18, height: 18).overlay(Circle().stroke(.white, lineWidth: 4))
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(title).font(.caption.weight(.semibold)).foregroundStyle(.secondary)
+                    Text(name).font(.headline).foregroundStyle(.primary)
+                    Text(time).font(.caption).foregroundStyle(.secondary)
+                }
+                Spacer()
+                if location != nil {
+                    Image(systemName: "map").foregroundStyle(CompanionTheme.accent)
+                }
+            }
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .disabled(location == nil)
+    }
+}
+
+private struct DetailMetricTile: View {
+    let icon: String
+    let title: String
+    let value: String
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 9) {
+            Image(systemName: icon).foregroundStyle(CompanionTheme.accent)
+            Text(value).font(.title3.weight(.bold)).lineLimit(1).minimumScaleFactor(0.72)
+            Text(title).font(.caption).foregroundStyle(.secondary)
+        }
+        .padding(14)
+        .frame(maxWidth: .infinity, minHeight: 112, alignment: .leading)
+        .background(CompanionTheme.accent.opacity(0.07), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+    }
+}
+
+private struct DetailFactGrid<Content: View>: View {
+    @ViewBuilder let content: Content
+
+    var body: some View {
+        LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], alignment: .leading, spacing: 16) {
+            content
+        }
+    }
+}
+
+private struct DetailFact: View {
+    let icon: String
+    let label: String
+    let value: String
+
+    var body: some View {
+        HStack(alignment: .top, spacing: 10) {
+            Image(systemName: icon)
+                .frame(width: 20)
+                .foregroundStyle(CompanionTheme.accent)
+            VStack(alignment: .leading, spacing: 3) {
+                Text(label).font(.caption).foregroundStyle(.secondary)
+                Text(value).font(.subheadline.weight(.semibold)).lineLimit(1).minimumScaleFactor(0.75)
+            }
+        }
+    }
+}
+
+private struct DriveRouteMap: View {
+    let drive: Drive
+    @State private var position: MapCameraPosition = .automatic
+
+    private var recordedRoute: [CLLocationCoordinate2D] {
+        (drive.route ?? []).map { CLLocationCoordinate2D(latitude: $0.latitude, longitude: $0.longitude) }
+    }
+
+    private var startCoordinate: CLLocationCoordinate2D? {
+        recordedRoute.first ?? drive.startLocation.map { CLLocationCoordinate2D(latitude: $0.latitude, longitude: $0.longitude) }
+    }
+
+    private var endCoordinate: CLLocationCoordinate2D? {
+        recordedRoute.last ?? drive.endLocation.map { CLLocationCoordinate2D(latitude: $0.latitude, longitude: $0.longitude) }
+    }
+
+    private var routeIdentity: String {
+        "\(recordedRoute.count)-\(startCoordinate?.latitude ?? 0)-\(endCoordinate?.longitude ?? 0)"
+    }
+
+    private var fittedPosition: MapCameraPosition {
+        let coordinates = recordedRoute.isEmpty ? [startCoordinate, endCoordinate].compactMap { $0 } : recordedRoute
+        guard let first = coordinates.first else { return .automatic }
+        let latitudes = coordinates.map(\.latitude)
+        let longitudes = coordinates.map(\.longitude)
+        let minLatitude = latitudes.min() ?? first.latitude
+        let maxLatitude = latitudes.max() ?? first.latitude
+        let minLongitude = longitudes.min() ?? first.longitude
+        let maxLongitude = longitudes.max() ?? first.longitude
+        return .region(MKCoordinateRegion(
+            center: CLLocationCoordinate2D(
+                latitude: (minLatitude + maxLatitude) / 2,
+                longitude: (minLongitude + maxLongitude) / 2
+            ),
+            span: MKCoordinateSpan(
+                latitudeDelta: max((maxLatitude - minLatitude) * 1.55, 0.008),
+                longitudeDelta: max((maxLongitude - minLongitude) * 1.55, 0.008)
+            )
+        ))
+    }
+
+    var body: some View {
+        Group {
+            if startCoordinate == nil && endCoordinate == nil {
+                ContentUnavailableView("暂无轨迹", systemImage: "map", description: Text("TeslaMate 尚未记录这次行程的位置数据。"))
+            } else {
+                Map(position: $position) {
+                    if recordedRoute.count >= 2 {
+                        MapPolyline(coordinates: recordedRoute)
+                            .stroke(CompanionTheme.accent, style: StrokeStyle(lineWidth: 5, lineCap: .round, lineJoin: .round))
+                    }
+                    if let startCoordinate {
+                        Annotation(drive.startLocationName, coordinate: startCoordinate, anchor: .bottom) {
+                            RouteEndpointBadge(label: "出发 · \(drive.startLocationName)", icon: "circle.fill", color: .green)
+                        }
+                    }
+                    if let endCoordinate {
+                        Annotation(drive.endLocationName, coordinate: endCoordinate, anchor: .bottom) {
+                            RouteEndpointBadge(label: "到达 · \(drive.endLocationName)", icon: "mappin.circle.fill", color: CompanionTheme.accent)
+                        }
+                    }
+                }
+                .mapStyle(.standard(elevation: .realistic))
+                .id(routeIdentity)
+                .onAppear { position = fittedPosition }
+                .onChange(of: routeIdentity) { position = fittedPosition }
+            }
+        }
+    }
+}
+
+private struct RouteEndpointBadge: View {
+    let label: String
+    let icon: String
+    let color: Color
+
+    var body: some View {
+        Label(label, systemImage: icon)
+            .font(.caption2.weight(.bold))
+            .lineLimit(1)
+            .foregroundStyle(.white)
+            .padding(.horizontal, 8)
+            .padding(.vertical, 6)
+            .background(color, in: Capsule())
+            .shadow(radius: 3, y: 1)
+    }
+}
+
+private struct SummaryMetric: View {
     let value: String
     let label: String
 
@@ -520,50 +803,65 @@ struct ChargesView: View {
     @EnvironmentObject private var charging: ChargingActivityManager
     @State private var charges: [Charge] = []
     @State private var message: String?
+    @State private var visibleMonth = Date()
+    @State private var presentation: ChargePresentation = .calendar
+    @State private var didChooseInitialMonth = false
 
     var body: some View {
         NavigationStack {
-            List {
-                CurrentChargingCard()
-                    .listRowInsets(EdgeInsets())
-                    .listRowBackground(Color.clear)
-                    .listRowSeparator(.hidden)
-                if charges.isEmpty {
-                    ContentUnavailableView("暂无充电记录", systemImage: "bolt.car", description: Text(message ?? "完成一次充电后，记录会显示在这里。"))
-                } else {
-                    ForEach(charges) { charge in
-                        NavigationLink {
-                            ChargeDetailView(charge: charge)
-                        } label: {
-                            VStack(alignment: .leading, spacing: 12) {
-                                HStack {
-                                    Label(charge.locationName, systemImage: charge.chargingType == "dc" ? "bolt.fill" : "powerplug.fill")
-                                        .font(.headline)
-                                    Spacer()
-                                    Text(charge.chargingType == "dc" ? "直流快充" : "交流充电")
-                                        .font(.caption.weight(.semibold))
-                                        .foregroundStyle(CompanionTheme.accent)
+            VStack(spacing: 0) {
+                MonthNavigationHeader(visibleMonth: $visibleMonth)
+                    .padding(.horizontal, 16)
+                    .padding(.top, 10)
+
+                Picker("展示方式", selection: $presentation) {
+                    ForEach(ChargePresentation.allCases) { item in
+                        Label(item.title, systemImage: item.icon).tag(item)
+                    }
+                }
+                .pickerStyle(.segmented)
+                .padding(.horizontal, 16)
+                .padding(.vertical, 10)
+
+                ScrollView {
+                    LazyVStack(spacing: 16) {
+                        CurrentChargingCard()
+
+                        if charges.isEmpty {
+                            ContentUnavailableView("暂无充电记录", systemImage: "bolt.car", description: Text(message ?? "完成一次充电后，记录会显示在这里。"))
+                                .frame(minHeight: 280)
+                        } else {
+                            HistoryCard {
+                                ChargePeriodSummary(charges: monthCharges, title: monthTitle)
+                            }
+
+                            if presentation == .calendar {
+                                MonthCalendarView(month: visibleMonth, eventCount: { charges(on: $0).count }) { date in
+                                    DailyChargesView(date: date, charges: charges(on: date))
                                 }
-                                Text(chineseDateTime(charge.startedAt))
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
-                                HStack(spacing: 0) {
-                                    TripMetric(value: "\(charge.addedEnergyKwh.formatted(.number.precision(.fractionLength(2)))) kWh", label: "充入电量")
-                                    Divider().padding(.horizontal, 12)
-                                    TripMetric(value: charge.consumedEnergyKwh.map { "\($0.formatted(.number.precision(.fractionLength(2)))) kWh" } ?? "—", label: "消耗电量")
-                                    Divider().padding(.horizontal, 12)
-                                    TripMetric(value: charge.chargingEfficiencyPercent.map { "\($0.formatted(.number.precision(.fractionLength(1))))%" } ?? "—", label: "充电效率")
-                                }
-                                HStack(spacing: 0) {
-                                    TripMetric(value: charge.maxChargingPowerKw.map { "\($0.formatted(.number.precision(.fractionLength(0)))) kW" } ?? "—", label: "最大功率")
-                                    Divider().padding(.horizontal, 12)
-                                    TripMetric(value: charge.durationMinutes.map(durationText) ?? "—", label: "充电时长")
-                                    Spacer()
+                            } else {
+                                if monthCharges.isEmpty {
+                                    ContentUnavailableView("本月暂无充电记录", systemImage: "bolt.slash", description: Text("切换月份可查看其他时间段的充电记录。"))
+                                        .frame(minHeight: 200)
+                                } else {
+                                    ForEach(chargeDays) { day in
+                                        ChargeDayCard(date: day.date, charges: day.charges)
+                                    }
                                 }
                             }
                         }
+
+                        if let message, !charges.isEmpty {
+                            Label(message, systemImage: "exclamationmark.triangle.fill")
+                                .font(.footnote)
+                                .foregroundStyle(.secondary)
+                        }
                     }
+                    .padding(.horizontal, 16)
+                    .padding(.top, 12)
+                    .padding(.bottom, 32)
                 }
+                .background(Color(uiColor: .systemGroupedBackground))
             }
             .navigationTitle("充电")
             .navigationBarTitleDisplayMode(.inline)
@@ -575,12 +873,218 @@ struct ChargesView: View {
         .task { await load() }
     }
 
+    private var monthCharges: [Charge] {
+        let interval = historyCalendar.dateInterval(of: .month, for: visibleMonth)!
+        return charges.filter { interval.contains($0.startedAt) }
+    }
+
+    private var monthTitle: String {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "zh_CN")
+        formatter.dateFormat = "yyyy年M月"
+        return formatter.string(from: visibleMonth)
+    }
+
+    private var chargeDays: [ChargeDay] {
+        let days: [Date] = monthCharges.map { historyCalendar.startOfDay(for: $0.startedAt) }
+        return Set(days).sorted(by: >).map { day in
+            ChargeDay(date: day, charges: monthCharges.filter { historyCalendar.isDate($0.startedAt, inSameDayAs: day) })
+        }
+    }
+
+    private func charges(on date: Date) -> [Charge] {
+        monthCharges.filter { historyCalendar.isDate($0.startedAt, inSameDayAs: date) }
+    }
+
     @MainActor private func load() async {
         do {
             guard let vehicle = try await VehicleLoader(apiClient: apiClient).firstVehicle() else { message = "尚未发现车辆"; return }
             charges = try await apiClient.get("/v1/vehicles/\(vehicle.id)/charges", as: [Charge].self)
+            if !didChooseInitialMonth, let latest = charges.first {
+                visibleMonth = latest.startedAt
+                didChooseInitialMonth = true
+            }
             message = nil
         } catch { message = "无法读取 Mac mini 数据。请确认两台设备在同一 Wi‑Fi；外出时请连接 Tailscale。" }
+    }
+}
+
+private enum ChargePresentation: String, CaseIterable, Identifiable {
+    case calendar, list
+    var id: String { rawValue }
+    var title: String { self == .calendar ? "日历" : "列表" }
+    var icon: String { self == .calendar ? "calendar" : "list.bullet" }
+}
+
+private struct ChargeDay: Identifiable {
+    let date: Date
+    let charges: [Charge]
+    var id: Date { date }
+}
+
+private struct HistoryCard<Content: View>: View {
+    @ViewBuilder let content: Content
+
+    var body: some View {
+        content
+            .padding(16)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(.background, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
+            .overlay(RoundedRectangle(cornerRadius: 20, style: .continuous).stroke(.primary.opacity(0.05)))
+    }
+}
+
+private struct ChargePeriodSummary: View {
+    let charges: [Charge]
+    let title: String
+
+    private var energy: Double { charges.reduce(0) { $0 + $1.addedEnergyKwh } }
+    private var minutes: Int { charges.reduce(0) { $0 + ($1.durationMinutes ?? 0) } }
+    private var hasDuration: Bool { charges.contains { $0.durationMinutes != nil } }
+
+    private var cost: Cost? {
+        let values = charges.compactMap(\.cost)
+        guard let currency = values.first?.currency, values.allSatisfy({ $0.currency == currency }) else { return nil }
+        return Cost(amount: values.reduce(0) { $0 + $1.amount }, currency: currency)
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            HStack {
+                Label(title, systemImage: "calendar")
+                    .font(.subheadline.weight(.semibold))
+                Spacer()
+                Text("\(charges.count) 次充电")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(.secondary)
+            }
+            HStack(spacing: 0) {
+                SummaryMetric(value: "\(energy.formatted(.number.precision(.fractionLength(2)))) kWh", label: "充入电量")
+                Divider().padding(.horizontal, 10)
+                SummaryMetric(value: hasDuration ? durationText(minutes) : "—", label: "充电时长")
+                Divider().padding(.horizontal, 10)
+                SummaryMetric(value: cost.map { $0.amount.formatted(.currency(code: $0.currency)) } ?? "—", label: "充电费用")
+            }
+        }
+    }
+}
+
+private struct ChargeRow: View {
+    let charge: Charge
+
+    private var chargingTypeName: String { charge.chargingType == "dc" ? "直流快充" : "交流充电" }
+
+    private var socText: String? {
+        guard let start = charge.startSocPercent, let end = charge.endSocPercent else { return nil }
+        return "\(start)% → \(end)%"
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(spacing: 9) {
+                Image(systemName: charge.chargingType == "dc" ? "bolt.fill" : "powerplug.fill")
+                    .font(.caption2)
+                    .foregroundStyle(CompanionTheme.accent)
+                Text(charge.locationName)
+                    .font(.headline)
+                    .lineLimit(1)
+                Spacer(minLength: 8)
+                Text(chargingTypeName)
+                    .font(.caption2.weight(.bold))
+                    .foregroundStyle(CompanionTheme.accent)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 5)
+                    .background(CompanionTheme.accent.opacity(0.1), in: Capsule())
+            }
+            HStack(spacing: 10) {
+                Text(chineseDateTime(charge.startedAt))
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                if let socText {
+                    Text(socText)
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(.secondary)
+                }
+                Spacer(minLength: 0)
+                if let cost = charge.cost {
+                    Text(cost.amount.formatted(.currency(code: cost.currency)))
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(.secondary)
+                }
+            }
+            HStack(spacing: 0) {
+                SummaryMetric(value: "\(charge.addedEnergyKwh.formatted(.number.precision(.fractionLength(2)))) kWh", label: "充入电量")
+                Divider().padding(.horizontal, 12)
+                SummaryMetric(value: charge.durationMinutes.map(durationText) ?? "—", label: "充电时长")
+                Divider().padding(.horizontal, 12)
+                SummaryMetric(value: charge.maxChargingPowerKw.map { "\($0.formatted(.number.precision(.fractionLength(0)))) kW" } ?? "—", label: "最大功率")
+            }
+        }
+        .padding(.vertical, 6)
+    }
+}
+
+private struct ChargeDayCard: View {
+    let date: Date
+    let charges: [Charge]
+
+    private var energy: Double { charges.reduce(0) { $0 + $1.addedEnergyKwh } }
+
+    var body: some View {
+        HistoryCard {
+            VStack(alignment: .leading, spacing: 14) {
+                HStack {
+                    Label(dayTitle(date), systemImage: "calendar")
+                        .font(.subheadline.weight(.semibold))
+                    Spacer()
+                    Text("\(charges.count) 次 · \(energy.formatted(.number.precision(.fractionLength(2)))) kWh")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(.secondary)
+                }
+                ForEach(charges) { charge in
+                    Divider()
+                    NavigationLink {
+                        ChargeDetailView(charge: charge)
+                    } label: {
+                        ChargeRow(charge: charge)
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+        }
+    }
+}
+
+private struct DailyChargesView: View {
+    let date: Date
+    let charges: [Charge]
+
+    private var title: String { dayTitle(date) }
+
+    var body: some View {
+        List {
+            Section {
+                ChargePeriodSummary(charges: charges, title: title)
+            }
+
+            if charges.isEmpty {
+                Section {
+                    ContentUnavailableView("当天暂无充电记录", systemImage: "bolt.car", description: Text("TeslaMate 在这一天没有记录到充电。"))
+                }
+            } else {
+                Section("充电明细 · \(charges.count) 次") {
+                    ForEach(charges) { charge in
+                        NavigationLink {
+                            ChargeDetailView(charge: charge)
+                        } label: {
+                            ChargeRow(charge: charge)
+                        }
+                    }
+                }
+            }
+        }
+        .navigationTitle(title)
+        .navigationBarTitleDisplayMode(.inline)
     }
 }
 
@@ -590,40 +1094,77 @@ private struct ChargeDetailView: View {
     @State private var mapTarget: MapTarget?
 
     var body: some View {
-        List {
-            Section {
-                HStack(spacing: 0) {
-                    TripMetric(value: "\(charge.addedEnergyKwh.formatted(.number.precision(.fractionLength(2)))) kWh", label: "充入电量")
-                    Divider().padding(.horizontal, 12)
-                    TripMetric(value: charge.consumedEnergyKwh.map { "\($0.formatted(.number.precision(.fractionLength(2)))) kWh" } ?? "—", label: "消耗电量")
-                    Divider().padding(.horizontal, 12)
-                    TripMetric(value: charge.chargingEfficiencyPercent.map { "\($0.formatted(.number.precision(.fractionLength(1))))%" } ?? "—", label: "充电效率")
+        ScrollView {
+            LazyVStack(spacing: 18) {
+                DetailCard(title: "充电概览", icon: "bolt.car.fill") {
+                    LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
+                        DetailMetricTile(icon: "bolt.fill", title: "充入电量", value: "\(charge.addedEnergyKwh.formatted(.number.precision(.fractionLength(2)))) kWh")
+                        DetailMetricTile(icon: "clock.fill", title: "充电时长", value: charge.durationMinutes.map(durationText) ?? "—")
+                        DetailMetricTile(icon: "gauge.with.dots.needle.50percent", title: "最大功率", value: charge.maxChargingPowerKw.map { "\($0.formatted(.number.precision(.fractionLength(0)))) kW" } ?? "—")
+                        DetailMetricTile(icon: "chart.line.uptrend.xyaxis", title: "充电效率", value: charge.chargingEfficiencyPercent.map { "\($0.formatted(.number.precision(.fractionLength(1))))%" } ?? "—")
+                    }
                 }
-                .padding(.vertical, 8)
-            }
-            Section("充电地点") {
-                if let location = charge.location {
-                    Button { mapTarget = MapTarget(name: charge.locationName, location: location) } label: {
-                        HStack {
-                            Text("地点").foregroundStyle(.primary)
+
+                DetailCard(title: "充电记录", icon: "mappin.and.ellipse") {
+                    VStack(spacing: 16) {
+                        Button {
+                            if let location = charge.location {
+                                mapTarget = MapTarget(name: charge.locationName, location: location)
+                            }
+                        } label: {
+                            HStack(spacing: 12) {
+                                Image(systemName: "mappin.circle.fill")
+                                    .font(.title2)
+                                    .foregroundStyle(CompanionTheme.accent)
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text("充电地点").font(.caption).foregroundStyle(.secondary)
+                                    Text(charge.locationName).font(.headline).foregroundStyle(.primary)
+                                }
+                                Spacer()
+                                if charge.location != nil {
+                                    Image(systemName: "map").foregroundStyle(CompanionTheme.accent)
+                                }
+                            }
+                            .contentShape(Rectangle())
+                        }
+                        .buttonStyle(.plain)
+                        .disabled(charge.location == nil)
+
+                        Divider()
+
+                        HStack(alignment: .top, spacing: 12) {
+                            ChargeTimePoint(title: "开始", date: charge.startedAt, alignment: .leading)
                             Spacer()
-                            Image(systemName: "mappin.circle.fill").foregroundStyle(CompanionTheme.accent)
-                            Text(charge.locationName).foregroundStyle(CompanionTheme.accent)
-                            Image(systemName: "map").font(.caption).foregroundStyle(.secondary)
+                            Image(systemName: "arrow.right")
+                                .font(.caption.weight(.bold))
+                                .foregroundStyle(.tertiary)
+                                .padding(.top, 22)
+                            Spacer()
+                            ChargeTimePoint(title: "结束", date: charge.endedAt, alignment: .trailing)
                         }
                     }
-                } else {
-                    LabeledContent("地点", value: charge.locationName)
+                }
+
+                DetailCard(title: "电量与费用", icon: "battery.75percent") {
+                    DetailFactGrid {
+                        if let start = charge.startSocPercent, let end = charge.endSocPercent {
+                            DetailFact(icon: "battery.75percent", label: "电量变化", value: "\(start)% → \(end)%")
+                        }
+                        if let consumed = charge.consumedEnergyKwh {
+                            DetailFact(icon: "powerplug.fill", label: "电网取电", value: "\(consumed.formatted(.number.precision(.fractionLength(2)))) kWh")
+                        }
+                        DetailFact(icon: charge.chargingType == "dc" ? "bolt.fill" : "powerplug.fill", label: "充电方式", value: charge.chargingType == "dc" ? "直流快充" : "交流充电")
+                        if let cost = charge.cost {
+                            DetailFact(icon: "banknote.fill", label: "本次费用", value: cost.amount.formatted(.currency(code: cost.currency)))
+                        }
+                    }
                 }
             }
-            Section("充电详情") {
-                LabeledContent("开始时间", value: chineseDateTime(charge.startedAt))
-                LabeledContent("结束时间", value: chineseDateTime(charge.endedAt))
-                if let duration = charge.durationMinutes { LabeledContent("充电时长", value: durationText(duration)) }
-                if let power = charge.maxChargingPowerKw { LabeledContent("最大功率", value: "\(power.formatted(.number.precision(.fractionLength(0)))) kW") }
-                if let start = charge.startSocPercent, let end = charge.endSocPercent { LabeledContent("电量", value: "\(start)% → \(end)%") }
-            }
+            .padding(.horizontal, 16)
+            .padding(.top, 12)
+            .padding(.bottom, 32)
         }
+        .background(Color(uiColor: .systemGroupedBackground))
         .navigationTitle("充电详情")
         .navigationBarTitleDisplayMode(.inline)
         .confirmationDialog("打开地图", isPresented: Binding(get: { mapTarget != nil }, set: { if !$0 { mapTarget = nil } }), titleVisibility: .visible) {
@@ -633,8 +1174,34 @@ private struct ChargeDetailView: View {
     }
 }
 
-private func durationText(_ minutes: Int) -> String {
-    (Double(minutes) / 60).formatted(.number.precision(.fractionLength(1))) + " 小时"
+private struct ChargeTimePoint: View {
+    let title: String
+    let date: Date
+    let alignment: HorizontalAlignment
+
+    private var time: String {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "zh_CN")
+        formatter.timeZone = .current
+        formatter.dateFormat = "HH:mm"
+        return formatter.string(from: date)
+    }
+
+    private var day: String {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "zh_CN")
+        formatter.timeZone = .current
+        formatter.dateFormat = "M月d日"
+        return formatter.string(from: date)
+    }
+
+    var body: some View {
+        VStack(alignment: alignment, spacing: 4) {
+            Text(title).font(.caption).foregroundStyle(.secondary)
+            Text(time).font(.title3.weight(.bold)).monospacedDigit()
+            Text(day).font(.caption).foregroundStyle(.secondary)
+        }
+    }
 }
 
 struct MyView: View {
