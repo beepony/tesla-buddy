@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "node --env-file=.env --watch apps/api/src/server.mjs",
     "start": "node --env-file=.env apps/api/src/server.mjs",
+    "ipa": "node scripts/build-ipa.mjs",
     "release": "node scripts/publish-release.mjs",
     "test": "node --test apps/api/test/*.test.mjs"
   },

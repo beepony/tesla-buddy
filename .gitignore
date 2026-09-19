@@ -5,6 +5,7 @@
 node_modules/
 .swiftpm/
 DerivedData/
+build/
 *.xcuserstate
 xcuserdata/
 apps/ios/Sources/LocalSecrets.swift

@@ -63,6 +63,23 @@ open TeslaCompanion.xcodeproj
 
 工程目标为 iOS 17+。选择自己的开发团队和已连接的 iPhone 后即可编译安装。
 
+## 用 .ipa 安装到 iPhone
+
+```sh
+npm run ipa                      # 优先 Ad Hoc，账号无 Ad Hoc 权限时自动回退开发签名
+npm run ipa -- --method ad-hoc   # 只导出 Ad Hoc
+```
+
+产物为 `build/ipa/TeslaBuddy-<版本>-<构建号>-<签名方式>.ipa`，安装方式：
+
+1. 命令行安装到已注册设备：`xcrun devicectl device install app --device <UDID> build/ipa/xxx.ipa`
+2. Apple Configurator：连接 iPhone 后把 .ipa 拖到设备上。
+3. Xcode：`Window > Devices and Simulators` 中选择设备后添加安装包。
+
+两种签名方式都只能安装到开发者账号中已注册 UDID 的设备（每年最多 100 台）。开发签名首次运行需要在 iPhone 的 设置 > 通用 > VPN与设备管理 中信任对应证书。Ad Hoc 分发要求付费 Apple Developer Program 会员；当前团队只有开发签名权限，脚本会自动回退并给出提示。
+
+安装包内编有 API token 和 Tailscale 主机名，因此默认只保留在本地 `build/ipa`，不会随发布上传。确需上传时执行 `npm run release -- --upload-ipa`，此时仓库必须保持私有，并应把该 token 视为已暴露、及时轮换。
+
 ## 软件更新检测
 
 API 订阅 TeslaMate 的 `version`、`update_available`、`update_version` 和 `healthy` MQTT 主题。它只在车辆明确报告可用更新时显示“有更新”，断线或数据不足时显示“更新状态未知”，避免根据互联网版本号误报。

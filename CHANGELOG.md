@@ -7,6 +7,7 @@
 ### 改进
 
 - 新增 GitHub Release 发布流程：`npm run release` 按当前版本创建标签与 Release，正文自动取自更新日志，历史版本可用 `--target` 回填。
+- 新增 `npm run ipa` 安装包流程：归档 Release 版本并导出 `.ipa`，优先使用 Ad Hoc 分发，账号无 Ad Hoc 权限时自动回退开发签名；安装包默认只留在本地 `build/ipa`，避免内嵌的 API token 外泄。
 
 ## 1.4.0 (28) — 2026-09-19
 

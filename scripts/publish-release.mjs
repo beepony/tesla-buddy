@@ -2,15 +2,20 @@
 /**
  * 按 CHANGELOG.md 的版本条目创建版本标签和 GitHub Release。
  *
+ * 默认不上传安装包：.ipa 里编有 API token 和 Tailscale 主机名，只适合本地安装。
+ * 确需上传时显式使用 --upload-ipa（仓库必须保持私有），或用 --ipa 指定文件。
+ *
  * 用法：
  *   npm run release                                # 发布 apps/ios/project.yml 中的当前版本
  *   npm run release -- 1.2.0                       # 补发历史版本
  *   npm run release -- 1.2.0 --target b0528e9      # 指定标签指向的提交
+ *   npm run release -- --upload-ipa                # 把匹配版本的 .ipa 上传为附件
+ *   npm run release -- --ipa build/ipa/x.ipa       # 指定要上传的安装包
  */
 import { execFileSync } from "node:child_process";
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { dirname, join } from "node:path";
+import { basename, dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const repoRoot = join(dirname(fileURLToPath(import.meta.url)), "..");
@@ -61,10 +66,18 @@ function changelogEntry(version) {
 const args = process.argv.slice(2);
 const positional = [];
 let target = null;
+let ipaArgument = null;
+let uploadIpa = false;
 for (let index = 0; index < args.length; index += 1) {
   if (args[index] === "--target") {
     target = args[index + 1] ?? null;
     index += 1;
+  } else if (args[index] === "--ipa") {
+    ipaArgument = args[index + 1] ?? null;
+    uploadIpa = true;
+    index += 1;
+  } else if (args[index] === "--upload-ipa") {
+    uploadIpa = true;
   } else if (!args[index].startsWith("--")) {
     positional.push(args[index]);
   }
@@ -74,6 +87,21 @@ const version = positional[0] ?? projectVersion().version;
 const { build, notes } = changelogEntry(version);
 const tag = `v${version}`;
 const title = `${version} (${build})`;
+
+function ipaArtifacts() {
+  if (ipaArgument) {
+    const path = resolve(repoRoot, ipaArgument);
+    if (!existsSync(path)) throw new Error(`找不到安装包 ${path}。`);
+    return [path];
+  }
+
+  const directory = join(repoRoot, "build", "ipa");
+  if (!existsSync(directory)) return [];
+  return readdirSync(directory)
+    .filter((name) => name.endsWith(".ipa") && name.includes(`-${version}-${build}`))
+    .sort()
+    .map((name) => join(directory, name));
+}
 
 if (!target && probe("git", ["status", "--porcelain", "--untracked-files=no"])) {
   console.warn("提示：工作区存在未提交的已跟踪改动，标签会指向当前提交，请先确认这些改动属于本版本。");
@@ -99,6 +127,20 @@ try {
   } else {
     const url = run("gh", ["release", "create", tag, "--verify-tag", "--title", title, "--notes-file", notesPath]);
     console.log(`已创建 Release：${url}`);
+  }
+
+  if (!uploadIpa) {
+    console.log("安装包未上传：.ipa 内含 API token 与 Tailscale 主机名，请用 npm run ipa 生成的本地文件安装；确需上传时加 --upload-ipa。");
+  } else {
+    const artifacts = ipaArtifacts();
+    if (artifacts.length === 0) {
+      console.log("提示：未找到匹配本版本的 .ipa，可先运行 npm run ipa 再重新执行以附加安装包。");
+    }
+    for (const artifact of artifacts) {
+      console.warn(`注意：${basename(artifact)} 内嵌 API token，仅应上传到私有仓库。`);
+      run("gh", ["release", "upload", tag, artifact, "--clobber"]);
+      console.log(`已上传安装包 ${basename(artifact)}`);
+    }
   }
 } finally {
   rmSync(tempDir, { recursive: true, force: true });

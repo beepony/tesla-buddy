@@ -23,7 +23,7 @@ Xcode 工程由 XcodeGen 生成。修改版本后重新生成工程，避免仅�
 2. 在 `CHANGELOG.md` 顶部增加带日期和构建号的版本条目，用中文描述用户可感知的新增、改进和修复。已发布的历史记录只更正事实错误。
 3. 同步 README 的当前版本、本版摘要及受影响的功能和使用说明。纯文档更新保持当前发布版本不变。
 4. 在 `apps/ios` 运行 `xcodegen generate`，检查生成的变更；执行与改动相关的测试、`git diff --check` 和 iOS 构建。发布前核对构建产物中 App 与扩展的版本号和构建号一致。
-5. 用户要求真机安装时，构建签名包并安装到已连接的设备；设备不可用时明确记录未完成的验证或安装步骤。
+5. 用户要求真机安装时，运行 `npm run ipa` 生成签名安装包并用 `xcrun devicectl device install app --device <UDID> <ipa>` 安装到已连接的设备；设备不可用时明确记录未完成的验证或安装步骤。`.ipa` 内编有 API token，默认不出仓库，只有显式执行 `npm run release -- --upload-ipa` 才作为 Release 附件上传，且仓库必须保持私有。
 6. 将本次修改与版本资料一起提交并推送。交付说明包含版本、主要变化、验证结果和提交号；存在失败时如实报告。
 7. 运行 `npm run release` 为当前版本创建标签（`v主版本.次版本.修订版本`）和 GitHub Release，正文取自 `CHANGELOG.md` 的对应小节。补发历史版本使用 `npm run release -- <版本号> --target <提交>`；重复执行会更新已有 Release 的说明。
 
