@@ -6,6 +6,8 @@
 
 Tesla Buddy 是一套本地优先的私人 Tesla 数据助手。它从家中 Mac mini 上运行的 TeslaMate 读取数据，通过受保护的本地 API 提供给原生 iOS App，不保存 Tesla 登录令牌，也不会直接控制车辆。
 
+iOS App 使用 SwiftUI Scene 生命周期，兼容 iOS 27 的前台窗口管理。
+
 ## 功能
 
 - 概览：车辆状态、电量、续航、累计里程和最后同步时间。
