@@ -82,6 +82,7 @@ xcodebuild -project apps/ios/TeslaCompanion.xcodeproj \
 
 - [版本管理与发布流程](docs/VERSIONING.md)
 - [版本更新日志](CHANGELOG.md)
+- [历史版本发布记录](https://github.com/beepony/tesla-buddy/releases)
 - [产品需求说明](docs/PRD.md)
 - [本地开发与 TeslaMate 接入](docs/LOCAL_SETUP.md)
 - [车辆软件更新提示](docs/SOFTWARE_UPDATES.md)
