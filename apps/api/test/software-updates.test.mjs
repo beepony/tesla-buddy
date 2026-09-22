@@ -14,7 +14,7 @@ function setup(prefix = "teslamate", subscribeError = null) {
   return { client, monitor, send, overview: () => monitor.overview(vehicle) };
 }
 
-test("updates require an explicit availability signal; missing and invalid values stay unknown", () => {
+test("missing and invalid availability signals stay unknown", () => {
   const { overview, send } = setup();
   assert.equal(overview().updateStatus, "unknown");
   send("update_version", "2026.26.1");
@@ -23,9 +23,39 @@ test("updates require an explicit availability signal; missing and invalid value
     assert.equal(overview().updateStatus, "unknown");
     assert.equal(overview().softwareUpdateReceivedAt, null);
   }
+  send("update_version", "2026.8.3.6");
   send("update_available", "false");
   assert.equal(overview().updateStatus, "no_update");
   assert.equal(overview().availableSoftwareVersion, null);
+});
+
+test("a target version newer than the installed one is an update even when the availability flag is off", () => {
+  const { overview, send } = setup();
+  send("update_version", "2026.26.200.11");
+  send("update_available", "false");
+  assert.equal(overview().updateStatus, "available");
+  assert.equal(overview().availableSoftwareVersion, "2026.26.200.11");
+  assert.equal(overview().softwareUpdateReceivedAt, "2026-09-06T09:00:00.000Z");
+});
+
+test("a pending update clears once the installed version catches up with the target", () => {
+  const { overview, send } = setup();
+  send("update_version", "2026.26.200.11");
+  send("update_available", "false");
+  assert.equal(overview().updateStatus, "available");
+  send("version", "2026.26.200.11");
+  assert.equal(overview().updateStatus, "no_update");
+  assert.equal(overview().availableSoftwareVersion, null);
+});
+
+test("an equal, older or malformed target version never reports an update", () => {
+  const { overview, send } = setup();
+  send("update_available", "false");
+  for (const value of ["2026.8.3.6", "2026.7.1", "invalid", ""]) {
+    send("update_version", value);
+    assert.equal(overview().updateStatus, "no_update");
+    assert.equal(overview().availableSoftwareVersion, null);
+  }
 });
 
 test("reports the vehicle's update, handles either topic order and clears it after installation", () => {

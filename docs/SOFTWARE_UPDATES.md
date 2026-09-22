@@ -12,7 +12,7 @@ API 订阅 TeslaMate MQTT 的 `version`、`update_available`、`update_version`�
 - `availableSoftwareVersion`：可用版本；无更新或没有版本信息时为 `null`。
 - `softwareUpdateReceivedAt`：MQTT 更新可用性消息的接收时间，**不是车辆检查更新时间**。
 
-MQTT 可能重放保留消息，界面因此使用「上次同步」措辞。断线、订阅失败或日志服务报告不健康时返回未知；仅有新版本号但无可用性信号不作可安装判断。目标版本已安装时清除提示，保留消息不会覆盖数据库中更高的已安装版本。App 刷新失败时保留旧概览，并隐藏肯定的更新提示。
+MQTT 可能重放保留消息，界面因此使用「上次同步」措辞。断线、订阅失败或日志服务报告不健康时返回未知。TeslaMate 的 `update_available` 只把 Tesla `software_update.status` 中的部分状态映射为 `true`（`available`、`downloading`、`downloading_wifi_wait`、`scheduled`、`installing`），已下载待安装等情况会得到 `false`；因此只要车辆上报的目标版本高于已安装版本，即使 `update_available` 为 `false` 也显示有更新。目标版本已安装时清除提示，保留消息不会覆盖数据库中更高的已安装版本。App 刷新失败时保留旧概览，并隐藏肯定的更新提示。
 
 ## 本地 Mac 接入
 
@@ -37,7 +37,7 @@ MQTT 端口仅绑定本机，不开放到局域网或公网。未配置 MQTT 时
 
 ## 验证
 
-`npm test` 覆盖更新可用、缺少版本号、无更新、更新完成、旧保留消息、版本数字比较、多车隔离、命名空间、断线重连、订阅失败及 API 认证。iOS 可用以下命令验证：
+`npm test` 覆盖更新可用、目标版本高于已安装版本、缺少版本号、无更新、更新完成、旧保留消息、版本数字比较、多车隔离、命名空间、断线重连、订阅失败及 API 认证。iOS 可用以下命令验证：
 
 ```sh
 xcodebuild -project apps/ios/TeslaCompanion.xcodeproj -scheme TeslaCompanion \

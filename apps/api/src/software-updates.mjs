@@ -55,13 +55,20 @@ export class SoftwareUpdateMonitor {
     // been recorded in PostgreSQL. Never regress the installed version.
     const current = reported && (!recorded || compareVersions(reported, recorded) >= 0)
       ? reported : vehicle.softwareVersion;
+    const installed = version(current);
     const target = version(car?.update_version);
+    const targetIsNewer = Boolean(installed && target && compareVersions(target, installed) > 0);
     let status = "unknown";
     if (car?.healthy !== "false") {
-      if (car?.update_available === "false") status = "no_update";
       if (car?.update_available === "true") {
-        status = target && version(current) && compareVersions(target, version(current)) <= 0
-          ? "no_update" : "available";
+        status = installed && target && !targetIsNewer ? "no_update" : "available";
+      } else if (car?.update_available === "false") {
+        // TeslaMate only maps a subset of Tesla's `software_update.status`
+        // values to `true`, so a vehicle that already downloaded an update can
+        // still report `update_available=false`. The target version the
+        // vehicle itself reports is authoritative: a newer one means the
+        // update is pending.
+        status = targetIsNewer ? "available" : "no_update";
       }
     }
     return {
