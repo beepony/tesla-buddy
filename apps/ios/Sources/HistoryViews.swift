@@ -1234,9 +1234,39 @@ struct MyView: View {
 
 private struct SettingsView: View {
     @EnvironmentObject private var charging: ChargingActivityManager
+    @EnvironmentObject private var updateNotifier: SoftwareUpdateNotifier
 
     var body: some View {
         List {
+            Section {
+                Toggle(isOn: Binding(
+                    get: { updateNotifier.enabled },
+                    set: { value in Task { await updateNotifier.setEnabled(value) } }
+                )) {
+                    Label("软件更新通知", systemImage: "bell.badge")
+                }
+                .tint(CompanionTheme.accent)
+
+                if updateNotifier.authorizationStatus == .denied {
+                    Button {
+                        guard let url = URL(string: UIApplication.openSettingsURLString) else { return }
+                        UIApplication.shared.open(url)
+                    } label: {
+                        Label("前往 iOS 设置开启通知", systemImage: "arrow.up.forward.app")
+                    }
+                }
+
+                if let message = updateNotifier.message {
+                    Label(message, systemImage: "exclamationmark.triangle.fill")
+                        .font(.footnote)
+                        .foregroundStyle(.orange)
+                }
+            } header: {
+                Text("通知")
+            } footer: {
+                Text("开启后，车辆收到软件更新时会发出通知，同一个目标版本只提醒一次。App 在前台或由 iOS 后台刷新唤醒时才会检查，提醒可能晚于车辆收到更新；安装仍在 Tesla 官方 App 或车机完成。")
+            }
+
             Section {
                 Toggle(isOn: Binding(
                     get: { charging.enabled },

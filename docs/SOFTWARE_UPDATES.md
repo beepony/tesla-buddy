@@ -14,6 +14,17 @@ API 订阅 TeslaMate MQTT 的 `version`、`update_available`、`update_version`�
 
 MQTT 可能重放保留消息，界面因此使用「上次同步」措辞。断线、订阅失败或日志服务报告不健康时返回未知。TeslaMate 的 `update_available` 只把 Tesla `software_update.status` 中的部分状态映射为 `true`（`available`、`downloading`、`downloading_wifi_wait`、`scheduled`、`installing`），已下载待安装等情况会得到 `false`；因此只要车辆上报的目标版本高于已安装版本，即使 `update_available` 为 `false` 也显示有更新。目标版本已安装时清除提示，保留消息不会覆盖数据库中更高的已安装版本。App 刷新失败时保留旧概览，并隐藏肯定的更新提示。
 
+## 通知
+
+在「我的 > 设置 > 通知」中开启「软件更新通知」。首次开启时 iOS 会弹出通知权限请求；若曾拒绝，需要在 iOS 设置 > 通知 > Tesla Buddy 中重新允许，设置页也提供跳转入口。
+
+检测到可用更新时，App 发送一条本地通知，包含目标版本与当前版本，并提示在 Tesla 官方 App 或车机「控制 > 软件」中安装或预约。同一个目标版本只提醒一次；更换新版本或安装完成后再次出现新目标版本时会重新提醒。提醒依赖以下检查时机：
+
+- App 前台：打开概览、回到前台、前台每 60 秒以及手动刷新。
+- iOS 后台 App 刷新：App 进入后台时提交 `BGAppRefreshTask`（最早 45 分钟后执行），由 iOS 决定实际运行时间。
+
+因此提醒可能晚于车辆收到更新；App 被强制退出、后台刷新被系统关闭或长时间不使用该 App 时不会提醒。MVP 不使用 APNs 远程推送，可靠推送归入第二阶段。
+
 ## 本地 Mac 接入
 
 1. 安装新增依赖：`npm ci`。

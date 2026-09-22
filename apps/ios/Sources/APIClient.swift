@@ -1,5 +1,24 @@
 import Foundation
 
+/// Single place that builds the client so the foreground UI and the background
+/// app refresh task always talk to the same hosts with the same token.
+enum CompanionAPI {
+    static var baseURLs: [URL] {
+        #if targetEnvironment(simulator)
+        [URL(string: "http://127.0.0.1:8787")!]
+        #else
+        [
+            URL(string: "http://m4.local:8787")!,
+            URL(string: "https://m4.taila2745f.ts.net")!
+        ]
+        #endif
+    }
+
+    static func makeClient() -> APIClient {
+        APIClient(baseURLs: baseURLs, apiToken: TeslaBuddySecrets.apiToken)
+    }
+}
+
 enum APIError: LocalizedError {
     case invalidResponse
     case server(Int)

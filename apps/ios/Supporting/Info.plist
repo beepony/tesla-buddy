@@ -22,6 +22,14 @@
     <string>$(CURRENT_PROJECT_VERSION)</string>
     <key>NSSupportsLiveActivities</key>
     <true/>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>fetch</string>
+	</array>
+	<key>BGTaskSchedulerPermittedIdentifiers</key>
+	<array>
+		<string>com.personal.teslacompanion.software-update-refresh</string>
+	</array>
 	<key>NSLocalNetworkUsageDescription</key>
 	<string>用于在同一 Wi-Fi 下直接连接家中的 Mac mini，读取 TeslaMate 车辆数据。</string>
 	<key>NSAppTransportSecurity</key>

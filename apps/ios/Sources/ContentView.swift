@@ -10,6 +10,7 @@ struct ContentView: View {
     let apiClient: APIClient
     @State private var isActive = UIApplication.shared.applicationState == .active
     @StateObject private var charging = ChargingActivityManager()
+    @StateObject private var updateNotifier = SoftwareUpdateNotifier()
 
     var body: some View {
         TabView {
@@ -28,7 +29,11 @@ struct ContentView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color(uiColor: .systemGroupedBackground).ignoresSafeArea())
         .environmentObject(charging)
-        .onReceive(NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification)) { _ in isActive = true }
+        .environmentObject(updateNotifier)
+        .onReceive(NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification)) { _ in
+            isActive = true
+            Task { await updateNotifier.refreshAuthorizationStatus() }
+        }
         .onReceive(NotificationCenter.default.publisher(for: UIApplication.willResignActiveNotification)) { _ in isActive = false }
         .task(id: isActive) {
             guard isActive else { return }
@@ -43,6 +48,7 @@ struct ContentView: View {
 struct OverviewView: View {
     let apiClient: APIClient
     let isActive: Bool
+    @EnvironmentObject private var updateNotifier: SoftwareUpdateNotifier
     @State private var vehicle: VehicleOverview?
     @State private var isLoading = false
     @State private var errorMessage: String?
@@ -156,8 +162,10 @@ struct OverviewView: View {
                 errorMessage = "TeslaMate 尚未返回车辆。请确认 Tesla 账户授权已完成。"
                 return
             }
-            vehicle = try await apiClient.get("/v1/vehicles/\(selectedVehicle.id)/overview", as: VehicleOverview.self)
+            let overview = try await apiClient.get("/v1/vehicles/\(selectedVehicle.id)/overview", as: VehicleOverview.self)
+            vehicle = overview
             errorMessage = nil
+            await updateNotifier.note(vehicle: overview)
         } catch {
             guard !Task.isCancelled else { return }
             errorMessage = localConnectionMessage(for: error)
