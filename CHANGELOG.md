@@ -19,6 +19,7 @@
 
 ### 改进
 
+- 补充哨兵模式手机提醒的数据源调研，区分 TeslaMate 的哨兵开关状态、官方 App 的安全事件通知与 Fleet Telemetry 的状态枚举，并说明 Tesla Buddy 现阶段的提醒限制。
 - 新增 GitHub Release 发布流程：`npm run release` 按当前版本创建标签与 Release，正文自动取自更新日志，历史版本可用 `--target` 回填。
 - 新增 `npm run ipa` 安装包流程：归档 Release 版本并导出 `.ipa`，优先使用 Ad Hoc 分发，账号无 Ad Hoc 权限时自动回退开发签名；安装包默认只留在本地 `build/ipa`，避免内嵌的 API token 外泄。
 
