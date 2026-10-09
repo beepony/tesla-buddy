@@ -104,6 +104,7 @@ xcodebuild -project apps/ios/TeslaCompanion.xcodeproj \
 - [本地开发与 TeslaMate 接入](docs/LOCAL_SETUP.md)
 - [车辆软件更新提示](docs/SOFTWARE_UPDATES.md)
 - [哨兵模式触发提醒调研](docs/research/sentry-alerts.md)
+- [Tesla 第三方 App 市场与公开发布评估](docs/research/tesla-third-party-apps.md)
 - [电池健康度数据可用性调研](docs/research/battery-health-data.md)
 - [报告口径](docs/REPORTS.md)
 - [充电 Live Activity](docs/charging-live-activity.md)
