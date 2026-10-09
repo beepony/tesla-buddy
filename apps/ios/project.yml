@@ -5,8 +5,8 @@ settings:
   base:
     SWIFT_VERSION: 6.0
     IPHONEOS_DEPLOYMENT_TARGET: 17.0
-    CURRENT_PROJECT_VERSION: 29
-    MARKETING_VERSION: 1.5.0
+    CURRENT_PROJECT_VERSION: 30
+    MARKETING_VERSION: 1.5.1
 targets:
   TeslaCompanion:
     type: application
