@@ -16,6 +16,7 @@
 		7F390D1467E5F5C878136292 /* TeslaCompanionApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16EE0B553ECD7098F74EDDCF /* TeslaCompanionApp.swift */; };
 		901ABB55C25DD8B9CC2939C9 /* APIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31200F650E392257DB7716C8 /* APIClient.swift */; };
 		B00DE2CD7986E0C655BE7D8D /* ChargingWidget.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = BFA99A743F2FF336A39A18FC /* ChargingWidget.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		D38E02F13E725CA1F45C79BD /* ServiceCenterWiFi.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13F07DF09FF4C9ED7C9C2961 /* ServiceCenterWiFi.swift */; };
 		D60FFB431A62AA060E18F124 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4DABBE985CD82214F0B74EA /* ContentView.swift */; };
 		DB0AA963777DFEAF9ECFB1DA /* ChargingActivityAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC5044D3287ED96E3DA093B7 /* ChargingActivityAttributes.swift */; };
 		DE8C4E1A721E1D649E7A0A0A /* ParkingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 276783E8ED68BBFEBEBEE355 /* ParkingView.swift */; };
@@ -49,6 +50,7 @@
 
 /* Begin PBXFileReference section */
 		054E24729D0DA95F0199FB1F /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
+		13F07DF09FF4C9ED7C9C2961 /* ServiceCenterWiFi.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServiceCenterWiFi.swift; sourceTree = "<group>"; };
 		16EE0B553ECD7098F74EDDCF /* TeslaCompanionApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TeslaCompanionApp.swift; sourceTree = "<group>"; };
 		276783E8ED68BBFEBEBEE355 /* ParkingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ParkingView.swift; sourceTree = "<group>"; };
 		31200F650E392257DB7716C8 /* APIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIClient.swift; sourceTree = "<group>"; };
@@ -100,6 +102,7 @@
 				3B0E647445DB91609884C363 /* LocalSecrets.swift */,
 				054E24729D0DA95F0199FB1F /* Models.swift */,
 				276783E8ED68BBFEBEBEE355 /* ParkingView.swift */,
+				13F07DF09FF4C9ED7C9C2961 /* ServiceCenterWiFi.swift */,
 				70B3B98AB676C3CDEBF47762 /* SoftwareUpdateNotifier.swift */,
 				16EE0B553ECD7098F74EDDCF /* TeslaCompanionApp.swift */,
 			);
@@ -229,6 +232,7 @@
 				576756CB731802E731588685 /* LocalSecrets.swift in Sources */,
 				139661B4C5A0AD4D5DB08ED2 /* Models.swift in Sources */,
 				DE8C4E1A721E1D649E7A0A0A /* ParkingView.swift in Sources */,
+				D38E02F13E725CA1F45C79BD /* ServiceCenterWiFi.swift in Sources */,
 				01C2019A3762C6BCC28E8176 /* SoftwareUpdateNotifier.swift in Sources */,
 				7F390D1467E5F5C878136292 /* TeslaCompanionApp.swift in Sources */,
 			);
@@ -339,7 +343,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 30;
+				CURRENT_PROJECT_VERSION = 31;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
@@ -358,7 +362,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
-				MARKETING_VERSION = 1.5.1;
+				MARKETING_VERSION = 1.6.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -404,7 +408,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 30;
+				CURRENT_PROJECT_VERSION = 31;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
@@ -417,7 +421,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
-				MARKETING_VERSION = 1.5.1;
+				MARKETING_VERSION = 1.6.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";

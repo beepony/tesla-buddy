@@ -1286,6 +1286,8 @@ private struct SettingsView: View {
             } footer: {
                 Text("开启后，充电时会在灵动岛与锁屏显示最近电量。App 打开期间每 15 秒刷新；数据超过 2 分钟会标记为待刷新。")
             }
+
+            ServiceCenterWiFiSection()
         }
         .navigationTitle("设置")
         .navigationBarTitleDisplayMode(.inline)
