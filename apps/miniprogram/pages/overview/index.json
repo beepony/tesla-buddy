@@ -1,1 +1,7 @@
-{ "navigationBarTitleText": "Tesla Buddy", "enablePullDownRefresh": true }
+{
+  "navigationBarTitleText": "Tesla Buddy",
+  "enablePullDownRefresh": true,
+  "usingComponents": {
+    "state-view": "/components/state-view/index"
+  }
+}

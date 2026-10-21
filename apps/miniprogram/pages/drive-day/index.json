@@ -1,1 +1,6 @@
-{ "navigationBarTitleText": "行程" }
+{
+  "navigationBarTitleText": "行程",
+  "usingComponents": {
+    "drive-row": "/components/drive-row/index"
+  }
+}

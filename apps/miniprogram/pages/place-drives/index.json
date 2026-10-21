@@ -1,1 +1,6 @@
-{ "navigationBarTitleText": "地点" }
+{
+  "navigationBarTitleText": "地点",
+  "usingComponents": {
+    "drive-row": "/components/drive-row/index"
+  }
+}

@@ -1,1 +1,7 @@
-{ "navigationBarTitleText": "报告", "enablePullDownRefresh": true }
+{
+  "navigationBarTitleText": "报告",
+  "enablePullDownRefresh": true,
+  "usingComponents": {
+    "segmented": "/components/segmented/index"
+  }
+}

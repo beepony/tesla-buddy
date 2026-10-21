@@ -1,1 +1,9 @@
-{ "navigationBarTitleText": "行程", "enablePullDownRefresh": true }
+{
+  "navigationBarTitleText": "行程",
+  "enablePullDownRefresh": true,
+  "usingComponents": {
+    "month-header": "/components/month-header/index",
+    "month-calendar": "/components/month-calendar/index",
+    "segmented": "/components/segmented/index"
+  }
+}

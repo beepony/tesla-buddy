@@ -28,20 +28,37 @@
     "backgroundColor": "#F7F7F7",
     "borderStyle": "black",
     "list": [
-      { "pagePath": "pages/overview/index", "text": "概览", "iconPath": "assets/tab/overview.png", "selectedIconPath": "assets/tab/overview-active.png" },
-      { "pagePath": "pages/drives/index", "text": "行程", "iconPath": "assets/tab/drives.png", "selectedIconPath": "assets/tab/drives-active.png" },
-      { "pagePath": "pages/charges/index", "text": "充电", "iconPath": "assets/tab/charges.png", "selectedIconPath": "assets/tab/charges-active.png" },
-      { "pagePath": "pages/parking/index", "text": "停车", "iconPath": "assets/tab/parking.png", "selectedIconPath": "assets/tab/parking-active.png" },
-      { "pagePath": "pages/mine/index", "text": "我的", "iconPath": "assets/tab/mine.png", "selectedIconPath": "assets/tab/mine-active.png" }
+      {
+        "pagePath": "pages/overview/index",
+        "text": "概览",
+        "iconPath": "assets/tab/overview.png",
+        "selectedIconPath": "assets/tab/overview-active.png"
+      },
+      {
+        "pagePath": "pages/drives/index",
+        "text": "行程",
+        "iconPath": "assets/tab/drives.png",
+        "selectedIconPath": "assets/tab/drives-active.png"
+      },
+      {
+        "pagePath": "pages/charges/index",
+        "text": "充电",
+        "iconPath": "assets/tab/charges.png",
+        "selectedIconPath": "assets/tab/charges-active.png"
+      },
+      {
+        "pagePath": "pages/parking/index",
+        "text": "停车",
+        "iconPath": "assets/tab/parking.png",
+        "selectedIconPath": "assets/tab/parking-active.png"
+      },
+      {
+        "pagePath": "pages/mine/index",
+        "text": "我的",
+        "iconPath": "assets/tab/mine.png",
+        "selectedIconPath": "assets/tab/mine-active.png"
+      }
     ]
-  },
-  "usingComponents": {
-    "month-header": "/components/month-header/index",
-    "month-calendar": "/components/month-calendar/index",
-    "segmented": "/components/segmented/index",
-    "drive-row": "/components/drive-row/index",
-    "charge-row": "/components/charge-row/index",
-    "state-view": "/components/state-view/index"
   },
   "permission": {},
   "requiredPrivateInfos": [],

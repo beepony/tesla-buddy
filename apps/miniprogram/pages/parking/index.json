@@ -1,1 +1,4 @@
-{ "navigationBarTitleText": "停车", "enablePullDownRefresh": true }
+{
+  "navigationBarTitleText": "停车",
+  "enablePullDownRefresh": true
+}

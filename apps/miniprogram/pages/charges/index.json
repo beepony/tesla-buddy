@@ -1,1 +1,10 @@
-{ "navigationBarTitleText": "充电", "enablePullDownRefresh": true }
+{
+  "navigationBarTitleText": "充电",
+  "enablePullDownRefresh": true,
+  "usingComponents": {
+    "month-header": "/components/month-header/index",
+    "month-calendar": "/components/month-calendar/index",
+    "segmented": "/components/segmented/index",
+    "charge-row": "/components/charge-row/index"
+  }
+}

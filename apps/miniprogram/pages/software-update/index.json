@@ -1,1 +1,6 @@
-{ "navigationBarTitleText": "系统版本" }
+{
+  "navigationBarTitleText": "系统版本",
+  "usingComponents": {
+    "state-view": "/components/state-view/index"
+  }
+}

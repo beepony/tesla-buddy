@@ -1,7 +1,7 @@
 .state { display: flex; flex-direction: column; align-items: center; padding: 160rpx 64rpx 64rpx; text-align: center; }
 .icon { width: 144rpx; height: 144rpx; border-radius: 72rpx; background: var(--brand-weak); display: flex; align-items: center; justify-content: center; margin-bottom: 40rpx; }
-.icon image { width: 72rpx; height: 72rpx; }
-.spin image { animation: spin 1.2s linear infinite; }
+.glyph { width: 72rpx; height: 72rpx; }
+.spin .glyph { animation: spin 1.2s linear infinite; }
 .title { font-size: 36rpx; font-weight: 600; margin-bottom: 16rpx; }
 .message { font-size: 28rpx; color: var(--fg-1); line-height: 1.6; margin-bottom: 48rpx; }
 .foot { margin-top: 48rpx; font-size: 24rpx; color: var(--fg-2); }

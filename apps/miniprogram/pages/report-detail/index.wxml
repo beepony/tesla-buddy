@@ -10,7 +10,7 @@
     <view wx:if="{{detail.note}}" class="section-tips">{{detail.note}}</view>
   </block>
   <view wx:else class="empty top-space">
-    <image class="empty-icon" src="/assets/icons/{{template.icon}}.png"></image>
+    <image wx:if="{{template.icon}}" class="empty-icon" src="/assets/icons/{{template.icon}}.png"></image>
     <view class="empty-title">数据仍在积累</view>
     {{template.detail}}
   </view>

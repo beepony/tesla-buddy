@@ -1,1 +1,6 @@
-{ "navigationBarTitleText": "充电" }
+{
+  "navigationBarTitleText": "充电",
+  "usingComponents": {
+    "charge-row": "/components/charge-row/index"
+  }
+}
