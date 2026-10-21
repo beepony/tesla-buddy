@@ -1,0 +1,5 @@
+<view class="header">
+  <view class="arrow left" hover-class="arrow-hover" bindtap="previous" aria-role="button" aria-label="上个月"></view>
+  <text class="title num">{{title}}</text>
+  <view class="arrow right" hover-class="arrow-hover" bindtap="next" aria-role="button" aria-label="下个月"></view>
+</view>

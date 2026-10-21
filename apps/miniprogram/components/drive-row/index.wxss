@@ -1,0 +1,9 @@
+.row { padding: 28rpx 32rpx; }
+.route { display: flex; align-items: center; gap: 12rpx; font-size: 32rpx; font-weight: 600; }
+.place { max-width: 220rpx; }
+.dot { width: 16rpx; height: 16rpx; border-radius: 8rpx; flex-shrink: 0; }
+.dot.start { background: var(--brand); }
+.dot.end { background: var(--blue); }
+.arrow { color: var(--fg-2); font-weight: 400; }
+.chevron { margin-left: auto; width: 16rpx; height: 16rpx; border-top: 3rpx solid var(--fg-2); border-right: 3rpx solid var(--fg-2); transform: rotate(45deg); }
+.time { font-size: 24rpx; color: var(--fg-1); margin: 8rpx 0 20rpx; }

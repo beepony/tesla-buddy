@@ -1,0 +1,31 @@
+<view class="page" wx:if="{{view}}">
+  <view class="section-title">充电概览</view>
+  <view class="card">
+    <view class="grid">
+      <view class="tile" wx:for="{{view.tiles}}" wx:key="label">
+        <view class="tile-label">{{item.label}}</view>
+        <view class="tile-value num">{{item.value}}</view>
+      </view>
+    </view>
+  </view>
+
+  <view class="section-title">充电记录</view>
+  <view class="cells">
+    <view class="cell {{view.canOpen ? 'access' : ''}}" hover-class="{{view.canOpen ? 'cell-hover' : 'none'}}" bindtap="openLocation">
+      <image class="cell-icon" src="/assets/icons/pin.png"></image>
+      <view class="cell-bd"><text class="muted tiny">充电地点</text><view class="bold">{{view.location}}</view></view>
+      <view class="cell-ft"></view>
+    </view>
+    <view class="cell">
+      <view class="timepoint"><view class="muted tiny">开始</view><view class="time num">{{view.start.time}}</view><view class="muted tiny">{{view.start.day}}</view></view>
+      <view class="cell-bd arrow">→</view>
+      <view class="timepoint right"><view class="muted tiny">结束</view><view class="time num">{{view.end.time}}</view><view class="muted tiny">{{view.end.day}}</view></view>
+    </view>
+  </view>
+
+  <view class="section-title">电量与费用</view>
+  <view class="cells">
+    <view class="cell" wx:for="{{view.facts}}" wx:key="label"><view class="cell-bd">{{item.label}}</view><view class="cell-ft num">{{item.value}}</view></view>
+  </view>
+</view>
+<view wx:elif="{{missing}}" class="empty"><view class="empty-title">找不到这条充电记录</view>请返回充电页刷新后重试。</view>

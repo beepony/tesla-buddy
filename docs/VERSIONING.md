@@ -13,18 +13,20 @@ App 使用 `主版本.次版本.修订版本 (构建号)`：
 
 ## 唯一配置来源
 
-`apps/ios/project.yml` 的公共 `settings.base` 是 App 与 ChargingWidget 的版本来源：`MARKETING_VERSION` 为版本号，`CURRENT_PROJECT_VERSION` 为构建号。两个目标继承公共配置，其 Info.plist 使用对应构建变量。
+自 2.0.0 起，发布目标为微信小程序，`apps/miniprogram/version.js` 是唯一版本来源：`version` 为版本号，`build` 为构建号（延续 iOS 构建号累加）。`npm run release` 从该文件读取版本。
+
+iOS App 已停止发布，下文 iOS 相关步骤仅在需要重新构建旧版 App 时参考：`apps/ios/project.yml` 的公共 `settings.base` 是 App 与 ChargingWidget 的版本来源：`MARKETING_VERSION` 为版本号，`CURRENT_PROJECT_VERSION` 为构建号。两个目标继承公共配置，其 Info.plist 使用对应构建变量。
 
 Xcode 工程由 XcodeGen 生成。修改版本后重新生成工程，避免仅编辑生成文件。仓库根目录 `package.json` 与 `package-lock.json` 的项目版本跟随 App 版本；依赖包版本按各自依赖管理。
 
 ## 每次交付
 
-1. 检查当前版本和已有更新日志，按本次变更选择版本级别；更新公共版本配置及两个 npm 项目版本字段（锁文件包含顶层及根包字段）。
+1. 检查当前版本和已有更新日志，按本次变更选择版本级别；更新 `apps/miniprogram/version.js` 及根目录 npm 项目版本字段（锁文件包含顶层及根包字段）。
 2. 在 `CHANGELOG.md` 顶部增加带日期和构建号的版本条目，用中文描述用户可感知的新增、改进和修复。已发布的历史记录只更正事实错误。
 3. 同步 README 的当前版本、本版摘要及受影响的功能和使用说明。纯文档更新保持当前发布版本不变。
-4. 在 `apps/ios` 运行 `xcodegen generate`，检查生成的变更；执行与改动相关的测试、`git diff --check` 和 iOS 构建。发布前核对构建产物中 App 与扩展的版本号和构建号一致。
-5. 用户要求真机安装时，运行 `npm run ipa` 生成签名安装包并用 `xcrun devicectl device install app --device <UDID> <ipa>` 安装到已连接的设备；设备不可用时明确记录未完成的验证或安装步骤。`.ipa` 内编有 API token，默认不出仓库，只有显式执行 `npm run release -- --upload-ipa` 才作为 Release 附件上传，且仓库必须保持私有。
+4. 执行 `npm test` 和 `git diff --check`；在微信开发者工具中编译、预览并真机调试改动页面。上传时版本号与 `version.js` 一致。
+5. （仅旧版 iOS）用户要求真机安装时，运行 `npm run ipa` 生成签名安装包并用 `xcrun devicectl device install app --device <UDID> <ipa>` 安装到已连接的设备；设备不可用时明确记录未完成的验证或安装步骤。`.ipa` 内编有 API token，默认不出仓库，只有显式执行 `npm run release -- --upload-ipa` 才作为 Release 附件上传，且仓库必须保持私有。
 6. 将本次修改与版本资料一起提交并推送。交付说明包含版本、主要变化、验证结果和提交号；存在失败时如实报告。
 7. 运行 `npm run release` 为当前版本创建标签（`v主版本.次版本.修订版本`）和 GitHub Release，正文取自 `CHANGELOG.md` 的对应小节。补发历史版本使用 `npm run release -- <版本号> --target <提交>`；重复执行会更新已有 Release 的说明。
 
-完成条件：版本配置与生成工程一致，主 App 和扩展产物版本一致，README 与更新日志完整记录本版，相关验证通过，提交已推送且 GitHub Release 已发布。纯文档变更无需构建 App，并在更新日志的“未发布”中记录。
+完成条件：`version.js`、npm 版本与更新日志一致，小程序已在开发者工具编译通过，README 与更新日志完整记录本版，相关验证通过，提交已推送且 GitHub Release 已发布。纯文档变更无需构建 App，并在更新日志的“未发布”中记录。

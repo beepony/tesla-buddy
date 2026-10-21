@@ -1,0 +1,4 @@
+{
+  "desc": "Tesla Buddy 只展示个人车辆数据，不允许被微信搜索收录。",
+  "rules": [{ "action": "disallow", "page": "*" }]
+}

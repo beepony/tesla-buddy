@@ -1,0 +1,40 @@
+{
+  "description": "Tesla Buddy 微信小程序",
+  "packOptions": {
+    "ignore": [
+      {
+        "type": "file",
+        "value": "config.example.js"
+      },
+      {
+        "type": "file",
+        "value": "package.json"
+      },
+      {
+        "type": "folder",
+        "value": "test"
+      }
+    ],
+    "include": []
+  },
+  "setting": {
+    "urlCheck": true,
+    "es6": true,
+    "enhance": true,
+    "postcss": true,
+    "minified": true,
+    "showShadowRootInWxmlPanel": true,
+    "uglifyFileName": false,
+    "ignoreUploadUnusedFiles": true,
+    "compileHotReLoad": true
+  },
+  "compileType": "miniprogram",
+  "libVersion": "3.7.0",
+  "appid": "touristappid",
+  "projectname": "tesla-buddy",
+  "condition": {},
+  "editorSetting": {
+    "tabIndent": "insertSpaces",
+    "tabSize": 2
+  }
+}

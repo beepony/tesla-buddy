@@ -1,0 +1,6 @@
+{
+  "name": "tesla-buddy-miniprogram",
+  "private": true,
+  "type": "commonjs",
+  "description": "微信小程序源码使用 CommonJS；此文件只为 Node 单元测试声明模块格式，不需要 npm 构建。"
+}

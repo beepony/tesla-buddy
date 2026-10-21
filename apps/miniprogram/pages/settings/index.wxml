@@ -1,0 +1,51 @@
+<view class="page">
+  <view class="section-title">通知</view>
+  <view class="cells">
+    <view class="cell indent">
+      <image class="cell-icon" src="/assets/icons/bell.png"></image>
+      <view class="cell-bd">软件更新提醒<text class="cell-desc">{{notify.loading ? '正在读取…' : (notify.configured ? '剩余可提醒 ' + notify.credits + ' 次' : '暂不可用')}}</text></view>
+      <button wx:if="{{notify.configured}}" class="btn mini" hover-class="btn-hover" bindtap="subscribe">{{notify.credits > 0 ? '再订阅一次' : '订阅'}}</button>
+    </view>
+    <view wx:if="{{notify.credits > 0}}" class="cell access" hover-class="cell-hover" bindtap="unsubscribe">
+      <view class="cell-bd warn">取消全部提醒</view>
+      <view class="cell-ft"></view>
+    </view>
+    <view class="cell access" hover-class="cell-hover" bindtap="openWechatSettings">
+      <view class="cell-bd link">管理微信通知权限</view>
+      <view class="cell-ft"></view>
+    </view>
+  </view>
+  <view wx:if="{{notify.message}}" class="notice warn">{{notify.message}}</view>
+  <view class="section-tips">车辆收到软件更新时，通过微信服务通知提醒，同一目标版本只提醒一次。按微信规则，每次订阅可接收一次提醒，可多次点击累积；服务器每 5 分钟检查一次，即使未打开小程序也会推送。安装仍在 Tesla 官方 App 或车机完成。</view>
+
+  <view class="section-title">充电状态</view>
+  <view class="cells">
+    <view class="cell indent">
+      <image class="cell-icon" src="/assets/icons/bolt.png"></image>
+      <view class="cell-bd">概览显示充电卡片</view>
+      <switch checked="{{chargingCard}}" color="#07C160" bindchange="toggleChargingCard"></switch>
+    </view>
+    <view class="cell indent">
+      <image class="cell-icon" src="/assets/icons/sun.png"></image>
+      <view class="cell-bd">充电时保持屏幕常亮</view>
+      <switch checked="{{keepScreenOn}}" color="#07C160" bindchange="toggleKeepScreenOn"></switch>
+    </view>
+  </view>
+  <view class="section-tips">小程序没有灵动岛与锁屏实时活动。充电时可在概览或充电页查看实时电量，页面打开期间每 15 秒刷新；数据超过 2 分钟会标记为待刷新。</view>
+
+  <view class="section-title">服务中心</view>
+  <view class="cells">
+    <view class="cell indent access" hover-class="cell-hover" bindtap="connectWifi">
+      <image class="cell-icon" src="/assets/icons/wifi.png"></image>
+      <view class="cell-bd">连接服务中心 Wi-Fi</view>
+      <view class="cell-ft">{{wifi.connecting ? '连接中…' : wifi.ssid}}</view>
+    </view>
+    <view class="cell indent access" hover-class="cell-hover" bindtap="copyPassword">
+      <image class="cell-icon" src="/assets/icons/copy.png"></image>
+      <view class="cell-bd">{{wifi.copied ? '密码已复制' : '复制 Wi-Fi 密码'}}</view>
+      <view class="cell-ft"></view>
+    </view>
+  </view>
+  <view wx:if="{{wifi.message}}" class="notice {{wifi.failed ? 'warn' : ''}}">{{wifi.message}}</view>
+  <view class="section-tips">在 Tesla 服务中心附近点击即可加入「{{wifi.ssid}}」，系统会询问是否加入；加入一次后手机会记住该网络，下次自动连接。也可复制密码在系统 Wi-Fi 设置中手动连接。</view>
+</view>

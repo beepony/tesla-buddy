@@ -1,0 +1,2 @@
+.gap { height: 24rpx; }
+.strong-sm { color: var(--fg-0); }

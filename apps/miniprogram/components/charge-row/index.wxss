@@ -1,0 +1,6 @@
+.row { padding: 28rpx 32rpx; }
+.head { display: flex; align-items: center; gap: 12rpx; }
+.type-icon { width: 36rpx; height: 36rpx; flex-shrink: 0; }
+.place { flex: 1; font-size: 32rpx; font-weight: 600; }
+.sub { display: flex; gap: 20rpx; font-size: 24rpx; color: var(--fg-1); margin: 8rpx 0 20rpx; }
+.cost { margin-left: auto; font-weight: 600; }

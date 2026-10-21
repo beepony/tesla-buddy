@@ -1,0 +1,29 @@
+<view class="page">
+  <state-view wx:if="{{!view}}" loading="{{loading}}" message="{{error}}" retry="{{false}}"></state-view>
+  <block wx:else>
+    <view class="section-title">车辆软件</view>
+    <view class="cells">
+      <view class="cell"><view class="cell-bd">当前版本</view><view class="cell-ft num">{{view.current}}</view></view>
+      <view class="cell"><view class="cell-bd">更新状态</view><view class="cell-ft {{view.hasUpdate ? 'brand bold' : ''}}">{{view.status}}</view></view>
+      <view wx:if="{{view.hasUpdate}}" class="cell"><view class="cell-bd">可用版本</view><view class="cell-ft num">{{view.target}}</view></view>
+    </view>
+
+    <view class="section-title">如何更新</view>
+    <view class="cells">
+      <view class="cell"><view class="cell-bd small guide">{{view.guide}}</view></view>
+      <view class="cell access" hover-class="cell-hover" bindtap="copyGuide">
+        <view class="cell-bd link">复制 Tesla 官方更新指南链接</view>
+        <view class="cell-ft"></view>
+      </view>
+    </view>
+    <view class="section-tips">此处显示车辆上次上报的状态；安装操作请在 Tesla 官方 App 或车机完成。</view>
+
+    <block wx:if="{{view.receivedAt}}">
+      <view class="section-title">消息</view>
+      <view class="cells">
+        <view class="cell"><view class="cell-bd">更新消息接收于</view><view class="cell-ft">{{view.receivedAt}}</view></view>
+      </view>
+      <view class="section-tips">接收时间不代表车辆检查更新时间，休眠或离线时可能显示之前的消息。</view>
+    </block>
+  </block>
+</view>

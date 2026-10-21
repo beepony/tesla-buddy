@@ -1,0 +1,10 @@
+.header { display: flex; align-items: center; justify-content: space-between; padding: 16rpx 16rpx 0; }
+.title { font-size: 34rpx; font-weight: 600; }
+.arrow { width: 88rpx; height: 88rpx; position: relative; border-radius: 44rpx; }
+.arrow::after {
+  content: ""; position: absolute; top: 50%; left: 50%; width: 18rpx; height: 18rpx;
+  border-top: 4rpx solid var(--fg-0); border-left: 4rpx solid var(--fg-0);
+}
+.arrow.left::after { transform: translate(-30%, -50%) rotate(-45deg); }
+.arrow.right::after { transform: translate(-70%, -50%) rotate(135deg); }
+.arrow-hover { background: var(--fill); }

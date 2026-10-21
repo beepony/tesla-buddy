@@ -1,0 +1,16 @@
+<import src="/components/period-summary.wxml" />
+<view class="page">
+  <view class="gap"></view>
+  <view class="card"><template is="period-summary" data="{{...summary}}" /></view>
+  <block wx:if="{{drives.length > 0}}">
+    <view class="section-title">行程明细 · {{drives.length}} 次</view>
+    <view class="cells">
+      <view wx:for="{{drives}}" wx:key="id" class="row-line"><drive-row drive="{{item}}"></drive-row></view>
+    </view>
+  </block>
+  <view wx:else class="card empty top">
+    <view class="empty-title">当天暂无行程</view>
+    TeslaMate 在这一天没有记录到驾驶行程。
+  </view>
+  <view wx:if="{{message}}" class="notice warn">{{message}}</view>
+</view>

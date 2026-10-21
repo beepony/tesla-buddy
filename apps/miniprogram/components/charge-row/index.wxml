@@ -1,0 +1,17 @@
+<view class="row" hover-class="cell-hover" bindtap="open" wx:if="{{view}}">
+  <view class="head">
+    <image class="type-icon" src="/assets/icons/{{view.dc ? 'bolt' : 'plug'}}.png" mode="aspectFit"></image>
+    <text class="place ellipsis">{{view.location}}</text>
+    <text class="tag">{{view.type}}</text>
+  </view>
+  <view class="sub">
+    <text>{{view.time}}</text>
+    <text wx:if="{{view.soc}}" class="bold">{{view.soc}}</text>
+    <text class="cost" wx:if="{{view.cost}}">{{view.cost}}</text>
+  </view>
+  <view class="metrics">
+    <view class="metric"><view class="metric-value num">{{view.energy}}</view><view class="metric-label">充入电量</view></view>
+    <view class="metric"><view class="metric-value num">{{view.duration}}</view><view class="metric-label">充电时长</view></view>
+    <view class="metric"><view class="metric-value num">{{view.power}}</view><view class="metric-label">最大功率</view></view>
+  </view>
+</view>

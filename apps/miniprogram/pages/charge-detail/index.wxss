@@ -1,0 +1,4 @@
+.timepoint { min-width: 160rpx; }
+.timepoint.right { text-align: right; }
+.time { font-size: 40rpx; font-weight: 600; margin: 4rpx 0; }
+.arrow { text-align: center; color: var(--fg-2); }

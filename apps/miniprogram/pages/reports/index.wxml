@@ -1,0 +1,43 @@
+<view class="page">
+  <view class="intro">
+    <view class="intro-title">报告中心</view>
+    <view class="muted small">按时间回顾你的真实用车数据</view>
+  </view>
+
+  <segmented items="{{periods}}" value="{{kind}}" bindchange="changeKind"></segmented>
+  <view class="date-row">
+    <view class="date-arrow left" hover-class="cell-hover" bindtap="previous" aria-role="button" aria-label="上一周期"></view>
+    <picker mode="date" value="{{anchorText}}" bindchange="pickDate">
+      <view class="date-pill num">{{anchorText}}</view>
+    </picker>
+    <view class="date-arrow right" hover-class="cell-hover" bindtap="next" aria-role="button" aria-label="下一周期"></view>
+  </view>
+
+  <view class="card period fade-in">
+    <view class="card-title">
+      <text>{{title}}</text>
+      <text class="tag {{synced ? '' : 'grey'}}">{{synced ? '实时汇总' : '等待同步'}}</text>
+    </view>
+    <view wx:if="{{highlight}}" class="metrics">
+      <view class="metric" wx:for="{{highlight}}" wx:key="label">
+        <view class="metric-value big num">{{item.value}}</view>
+        <view class="metric-label">{{item.label}}</view>
+      </view>
+    </view>
+    <block wx:else>
+      <view class="bold">首份复盘会在记录到行程和充电后自动生成。</view>
+      <view class="muted small top">你无需手动填报；TeslaMate 会在车辆上线、行驶或充电时持续累积数据。</view>
+    </block>
+  </view>
+
+  <view class="section-title"><text class="strong">深入查看</text><text>4 项</text></view>
+  <view class="cells">
+    <view wx:for="{{templates}}" wx:key="id" class="cell access indent" hover-class="cell-hover" data-id="{{item.id}}" bindtap="openTemplate">
+      <image class="cell-icon" src="/assets/icons/{{item.icon}}.png"></image>
+      <view class="cell-bd">{{item.title}}<text class="cell-desc">{{item.summary}}</text></view>
+      <view class="cell-ft"></view>
+    </view>
+  </view>
+
+  <view wx:if="{{message}}" class="notice warn">{{message}}</view>
+</view>

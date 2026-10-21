@@ -12,15 +12,51 @@ const isAuthorized = (request, apiToken) => {
   return actual.length === expected.length && timingSafeEqual(actual, expected);
 };
 
-export function createApp(repository, clock = () => new Date(), apiToken = process.env.TESLA_BUDDY_API_TOKEN, softwareUpdates = null) {
+async function readJson(request, limit = 16_384) {
+  if (request.body !== undefined) return request.body;
+  let text = "";
+  for await (const chunk of request) {
+    text += chunk;
+    if (text.length > limit) throw Object.assign(new Error("payload_too_large"), { status: 413 });
+  }
+  if (!text) return {};
+  try { return JSON.parse(text); } catch { throw Object.assign(new Error("invalid_json"), { status: 400 }); }
+}
+
+export function createApp(repository, clock = () => new Date(), apiToken = process.env.TESLA_BUDDY_API_TOKEN, softwareUpdates = null, wechat = null) {
   const withUpdates = (vehicle) => softwareUpdates?.overview(vehicle) ?? vehicle;
+
+  // Subscribe-message endpoints: the mini program sends a fresh wx.login code
+  // and the server resolves the openid itself, so clients cannot spoof it.
+  const wechatRoute = async (request, response, pathname) => {
+    if (pathname === "/v1/wechat/config" && request.method === "GET") {
+      return json(response, 200, { data: wechat?.publicConfig() ?? { configured: false, templateId: null } });
+    }
+    const actions = { status: "status", subscribe: "subscribe", unsubscribe: "cancel" };
+    const action = pathname.match(/^\/v1\/wechat\/subscriptions\/(status|subscribe|unsubscribe)$/)?.[1];
+    if (!action) return null;
+    if (request.method !== "POST") return json(response, 405, { error: "method_not_allowed" });
+    if (!wechat?.configured) return json(response, 503, { error: "wechat_not_configured" });
+    try {
+      const body = await readJson(request);
+      return json(response, 200, { data: await wechat[actions[action]](body?.code) });
+    } catch (error) {
+      return json(response, error.status ?? 502, { error: typeof error.code === "string" ? error.code : error.message });
+    }
+  };
+
   return async (request, response) => {
     const url = new URL(request.url, `http://${request.headers.host ?? "localhost"}`);
-    if (request.method !== "GET") return json(response, 405, { error: "method_not_allowed" });
-    if (url.pathname === "/health") return json(response, 200, { status: "ok", checkedAt: clock().toISOString(), dataSource: process.env.DATA_SOURCE ?? "mock" });
+    if (url.pathname === "/health" && request.method === "GET") return json(response, 200, { status: "ok", checkedAt: clock().toISOString(), dataSource: process.env.DATA_SOURCE ?? "mock" });
     if (url.pathname.startsWith("/v1/") && !isAuthorized(request, apiToken)) {
       return json(response, 401, { error: "unauthorized" });
     }
+    if (url.pathname.startsWith("/v1/wechat/")) {
+      const handled = await wechatRoute(request, response, url.pathname);
+      if (handled !== null) return handled;
+      return json(response, 404, { error: "not_found" });
+    }
+    if (request.method !== "GET") return json(response, 405, { error: "method_not_allowed" });
     if (url.pathname === "/v1/vehicles") return json(response, 200, { data: (await repository.listVehicles()).map(withUpdates) });
 
     const overview = url.pathname.match(/^\/v1\/vehicles\/([^/]+)\/overview$/);

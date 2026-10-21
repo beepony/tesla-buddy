@@ -6,7 +6,7 @@
  * 确需上传时显式使用 --upload-ipa（仓库必须保持私有），或用 --ipa 指定文件。
  *
  * 用法：
- *   npm run release                                # 发布 apps/ios/project.yml 中的当前版本
+ *   npm run release                                # 发布 apps/miniprogram/version.js 中的当前版本
  *   npm run release -- 1.2.0                       # 补发历史版本
  *   npm run release -- 1.2.0 --target b0528e9      # 指定标签指向的提交
  *   npm run release -- --upload-ipa                # 把匹配版本的 .ipa 上传为附件
@@ -43,10 +43,11 @@ function probe(command, args) {
 }
 
 function projectVersion() {
-  const project = readFileSync(join(repoRoot, "apps/ios/project.yml"), "utf8");
-  const version = project.match(/^\s*MARKETING_VERSION:\s*(\S+)/m)?.[1];
-  const build = project.match(/^\s*CURRENT_PROJECT_VERSION:\s*(\S+)/m)?.[1];
-  if (!version || !build) throw new Error("无法从 apps/ios/project.yml 读取版本号和构建号。");
+  // 2.0 起以微信小程序为发布目标，版本来源为 apps/miniprogram/version.js。
+  const source = readFileSync(join(repoRoot, "apps/miniprogram/version.js"), "utf8");
+  const version = source.match(/version:\s*"([^"]+)"/)?.[1];
+  const build = source.match(/build:\s*(\d+)/)?.[1];
+  if (!version || !build) throw new Error("无法从 apps/miniprogram/version.js 读取版本号和构建号。");
   return { version, build };
 }
 

@@ -9,3 +9,4 @@ build/
 *.xcuserstate
 xcuserdata/
 apps/ios/Sources/LocalSecrets.swift
+data/

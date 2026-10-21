@@ -1,0 +1,32 @@
+<import src="/components/period-summary.wxml" />
+<import src="/components/charging-card.wxml" />
+<view class="page">
+  <month-header month="{{month}}" bindchange="changeMonth"></month-header>
+  <segmented items="{{modes}}" value="{{mode}}" bindchange="changeMode"></segmented>
+
+  <template wx:if="{{chargingCard}}" is="charging-card" data="{{...chargingCard}}" />
+  <view class="gap"></view>
+
+  <view wx:if="{{loaded && total === 0}}" class="card empty">
+    <view class="empty-title">暂无充电记录</view>
+    {{message || '完成一次充电后，记录会显示在这里。'}}
+  </view>
+  <block wx:else>
+    <view class="card fade-in"><template is="period-summary" data="{{...summary}}" /></view>
+    <view class="gap"></view>
+    <month-calendar wx:if="{{mode === 'calendar'}}" month="{{month}}" counts="{{counts}}" bindselect="openDay"></month-calendar>
+    <block wx:else>
+      <view wx:if="{{days.length === 0}}" class="card empty">
+        <view class="empty-title">本月暂无充电记录</view>
+        切换月份可查看其他时间段的充电记录。
+      </view>
+      <block wx:for="{{days}}" wx:key="key" wx:for-item="day">
+        <view class="section-title"><text class="bold strong-sm">{{day.title}}</text><text>{{day.detail}}</text></view>
+        <view class="cells">
+          <view wx:for="{{day.charges}}" wx:key="id" class="row-line"><charge-row charge="{{item}}"></charge-row></view>
+        </view>
+      </block>
+    </block>
+    <view wx:if="{{message}}" class="notice warn">{{message}}</view>
+  </block>
+</view>

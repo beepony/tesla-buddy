@@ -1,0 +1,29 @@
+<view class="page">
+  <view class="profile">
+    <image class="logo" src="/assets/icons/logo.png" mode="aspectFit"></image>
+    <view>
+      <view class="profile-name">Tesla Buddy</view>
+      <view class="muted small">私人 TeslaMate 数据助手</view>
+    </view>
+  </view>
+
+  <view class="section-title">数据</view>
+  <view class="cells">
+    <view class="cell access indent" hover-class="cell-hover" bindtap="openReports">
+      <image class="cell-icon" src="/assets/icons/chart.png"></image>
+      <view class="cell-bd">用车报告</view>
+      <view class="cell-ft"></view>
+    </view>
+  </view>
+
+  <view class="section-title">偏好设置</view>
+  <view class="cells">
+    <view class="cell access indent" hover-class="cell-hover" bindtap="openSettings">
+      <image class="cell-icon" src="/assets/icons/gear.png"></image>
+      <view class="cell-bd">设置</view>
+      <view class="cell-ft"></view>
+    </view>
+  </view>
+
+  <view class="footer muted tiny">版本 {{version}} · 只读访问，不控制车辆</view>
+</view>

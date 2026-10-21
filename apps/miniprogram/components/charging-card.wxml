@@ -1,0 +1,25 @@
+<template name="charging-card">
+  <view class="card">
+    <view class="card-title">
+      <text>当前充电</text>
+      <text class="tag {{active ? '' : 'grey'}}">{{badge}}</text>
+    </view>
+    <block wx:if="{{active}}">
+      <view class="charge-now">
+        <text class="charge-percent num">{{percent}}</text>
+        <view class="charge-elapsed">
+          <view class="bold num">{{elapsed}}</view>
+          <view class="muted tiny">{{elapsedLabel}}</view>
+        </view>
+      </view>
+      <view class="progress"><view class="progress-bar {{charging ? 'pulse' : ''}}" style="width: {{percentValue}}%"></view></view>
+      <view class="charge-line small">
+        <text>功率 {{power}}</text>
+        <text>{{added}}</text>
+      </view>
+      <view class="muted tiny">采样于 {{sampled}}</view>
+    </block>
+    <view wx:else class="muted small">{{hint}}</view>
+    <view wx:if="{{error}}" class="charge-error tiny">{{error}}</view>
+  </view>
+</template>

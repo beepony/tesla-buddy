@@ -1,0 +1,33 @@
+<import src="/components/period-summary.wxml" />
+<view class="page">
+  <month-header month="{{month}}" bindchange="changeMonth"></month-header>
+  <segmented items="{{modes}}" value="{{mode}}" bindchange="changeMode"></segmented>
+
+  <block wx:if="{{mode === 'calendar'}}">
+    <view class="card fade-in"><template is="period-summary" data="{{...summary}}" /></view>
+    <view class="gap"></view>
+    <month-calendar month="{{month}}" counts="{{counts}}" bindselect="openDay"></month-calendar>
+  </block>
+
+  <block wx:else>
+    <view wx:if="{{markers.length === 0}}" class="card empty">
+      <view class="empty-title">这一月份暂无足迹</view>
+      切换月份查看去过的地点。
+    </view>
+    <block wx:else>
+      <view class="map-wrap card">
+        <map class="map" markers="{{markers}}" include-points="{{includePoints}}" show-scale bindcallouttap="openPlace" bindmarkertap="openPlace"></map>
+        <view class="map-badge">已点亮 {{places.length}} 个地点</view>
+      </view>
+      <view class="section-title">去过的地点</view>
+      <view class="cells">
+        <view wx:for="{{places}}" wx:key="name" class="cell access" hover-class="cell-hover" data-index="{{index}}" bindtap="openPlace">
+          <view class="cell-bd ellipsis">{{item.name}}</view>
+          <view class="cell-ft">{{item.count}} 次</view>
+        </view>
+      </view>
+    </block>
+  </block>
+
+  <view wx:if="{{message}}" class="notice warn">{{message}}</view>
+</view>

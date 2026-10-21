@@ -1,0 +1,9 @@
+<view class="state">
+  <view class="icon {{loading ? 'spin' : ''}}">
+    <image src="/assets/icons/{{loading ? 'sync' : 'signal'}}.png" mode="aspectFit"></image>
+  </view>
+  <view class="title">{{title || (loading ? '正在连接你的车辆数据' : '暂时无法读取车辆')}}</view>
+  <view class="message">{{message || '正在连接 Tesla Buddy 服务…'}}</view>
+  <button wx:if="{{!loading && retry}}" class="btn mini" hover-class="btn-hover" bindtap="onRetry">重新连接</button>
+  <view class="foot">数据经 HTTPS 与 API token 加密访问</view>
+</view>

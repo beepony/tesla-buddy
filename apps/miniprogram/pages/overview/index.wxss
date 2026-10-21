@@ -1,0 +1,43 @@
+.hero {
+  margin: 0 32rpx;
+  padding: 36rpx 32rpx 32rpx;
+  border-radius: 16rpx;
+  background: var(--card);
+}
+.hero-head { display: flex; justify-content: space-between; align-items: flex-start; }
+.name { font-size: 40rpx; font-weight: 600; }
+.model { font-size: 26rpx; color: var(--fg-1); margin-top: 4rpx; }
+.state { display: flex; align-items: center; gap: 10rpx; padding: 8rpx 20rpx; border-radius: 28rpx; font-size: 24rpx; font-weight: 500; background: var(--fill); color: var(--fg-1); }
+.state-dot { width: 12rpx; height: 12rpx; border-radius: 6rpx; background: var(--fg-2); }
+.state-online, .state-driving, .state-charging { color: var(--brand); background: var(--brand-weak); }
+.state-online .state-dot, .state-driving .state-dot, .state-charging .state-dot { background: var(--brand); }
+.state-asleep { color: var(--blue); }
+.state-asleep .state-dot { background: var(--blue); }
+.hero-main { display: flex; justify-content: space-between; align-items: flex-end; margin: 40rpx 0 28rpx; }
+.label { font-size: 24rpx; color: var(--fg-1); }
+.range { font-size: 96rpx; font-weight: 600; line-height: 1.1; letter-spacing: -2rpx; }
+.unit { font-size: 32rpx; font-weight: 500; margin-left: 8rpx; color: var(--fg-1); }
+.battery { text-align: right; }
+.battery-value { font-size: 48rpx; font-weight: 600; color: var(--brand); }
+
+.charging { margin-top: 24rpx; }
+.charging .card-title { margin-bottom: 12rpx; }
+.charging-row { display: flex; align-items: baseline; gap: 20rpx; }
+.charging-percent { font-size: 48rpx; font-weight: 600; }
+
+.tires { display: flex; align-items: stretch; gap: 20rpx; padding: 24rpx; }
+.tire-col { flex: 1; display: flex; flex-direction: column; gap: 20rpx; }
+.tire { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; border-radius: 12rpx; background: var(--fill); padding: 20rpx 0; }
+.tire-value { font-size: 40rpx; font-weight: 600; }
+.tire-label { font-size: 24rpx; color: var(--fg-1); margin-top: 4rpx; }
+.car { display: flex; flex-direction: column; align-items: center; justify-content: space-between; width: 140rpx; }
+.car-label { font-size: 20rpx; color: var(--fg-2); }
+.car-body { position: relative; width: 84rpx; height: 176rpx; border-radius: 30rpx; background: var(--brand); margin: 12rpx 0; }
+.wheel { position: absolute; width: 14rpx; height: 42rpx; border-radius: 7rpx; background: var(--fg-1); }
+.w1 { left: -20rpx; top: 22rpx; } .w2 { right: -20rpx; top: 22rpx; }
+.w3 { left: -20rpx; bottom: 22rpx; } .w4 { right: -20rpx; bottom: 22rpx; }
+.glass { position: absolute; left: 14rpx; right: 14rpx; border-radius: 10rpx; background: rgba(255, 255, 255, 0.6); }
+.glass.front { top: 30rpx; height: 28rpx; }
+.glass.rear { bottom: 30rpx; height: 24rpx; background: rgba(255, 255, 255, 0.45); }
+
+.badge-dot { display: inline-block; margin-left: 8rpx; padding: 2rpx 12rpx; border-radius: 20rpx; background: var(--warn); color: #fff; font-size: 20rpx; vertical-align: 4rpx; }

@@ -1,0 +1,16 @@
+<view class="calendar card">
+  <view class="row">
+    <view wx:for="{{weekdays}}" wx:key="*this" class="weekday">{{item}}</view>
+  </view>
+  <view class="row">
+    <block wx:for="{{cells}}" wx:key="key">
+      <view wx:if="{{item.empty}}" class="day"></view>
+      <view wx:else class="day" hover-class="day-hover" data-key="{{item.key}}" bindtap="select"
+            aria-role="button" aria-label="{{item.day}}日，{{item.count}}条记录">
+        <view class="number {{item.today ? 'today' : ''}}">{{item.day}}</view>
+        <view wx:if="{{item.count > 0}}" class="badge"><view class="dot"></view>{{item.count}}</view>
+        <view wx:else class="badge"></view>
+      </view>
+    </block>
+  </view>
+</view>

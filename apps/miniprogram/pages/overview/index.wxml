@@ -1,0 +1,97 @@
+<view class="page">
+  <state-view wx:if="{{!vehicle}}" loading="{{loading && !error}}" message="{{error}}" bindretry="retry"></state-view>
+
+  <block wx:else>
+    <view class="section-title">
+      <text class="strong">车辆概览</text>
+      <text>{{vehicle.updatedAt}}</text>
+    </view>
+
+    <view class="hero fade-in">
+      <view class="hero-head">
+        <view class="hero-name">
+          <view class="name">{{vehicle.name}}</view>
+          <view class="model">{{vehicle.model}}</view>
+        </view>
+        <view class="state state-{{vehicle.stateKey}}"><view class="state-dot"></view>{{vehicle.state}}</view>
+      </view>
+      <view class="hero-main">
+        <view>
+          <view class="label">预估续航</view>
+          <view class="range num">{{vehicle.range}}<text class="unit">km</text></view>
+        </view>
+        <view class="battery">
+          <view class="battery-value num">{{vehicle.battery}}</view>
+          <view class="label">当前电量</view>
+        </view>
+      </view>
+      <view class="progress"><view class="progress-bar" style="width: {{vehicle.batteryPercent}}%"></view></view>
+    </view>
+
+    <view wx:if="{{showCharging && chargingCard && chargingCard.active}}" class="card charging fade-in" hover-class="cell-hover" bindtap="openCharges">
+      <view class="card-title">
+        <text>当前充电</text>
+        <text class="tag">{{chargingCard.badge}}</text>
+      </view>
+      <view class="charging-row">
+        <text class="charging-percent num">{{chargingCard.percent}}</text>
+        <text class="muted small">{{chargingCard.power}} · {{chargingCard.added}}</text>
+      </view>
+    </view>
+
+    <view class="section-title">
+      <text class="strong">胎压</text>
+      <text>{{vehicle.tireDetail}}</text>
+    </view>
+    <view class="card tires fade-in" aria-label="胎压：左前{{vehicle.tires.fl}}，右前{{vehicle.tires.fr}}，左后{{vehicle.tires.rl}}，右后{{vehicle.tires.rr}} bar">
+      <view class="tire-col">
+        <view class="tire"><view class="tire-value num">{{vehicle.tires.fl}}</view><view class="tire-label">左前</view></view>
+        <view class="tire"><view class="tire-value num">{{vehicle.tires.rl}}</view><view class="tire-label">左后</view></view>
+      </view>
+      <view class="car">
+        <text class="car-label">车头</text>
+        <view class="car-body">
+          <view class="wheel w1"></view><view class="wheel w2"></view><view class="wheel w3"></view><view class="wheel w4"></view>
+          <view class="glass front"></view><view class="glass rear"></view>
+        </view>
+        <text class="car-label">车尾</text>
+      </view>
+      <view class="tire-col">
+        <view class="tire"><view class="tire-value num">{{vehicle.tires.fr}}</view><view class="tire-label">右前</view></view>
+        <view class="tire"><view class="tire-value num">{{vehicle.tires.rr}}</view><view class="tire-label">右后</view></view>
+      </view>
+    </view>
+
+    <view wx:if="{{error}}" class="notice warn">刷新失败，当前显示上次数据。{{error}}</view>
+
+    <view class="section-title">
+      <text class="strong">关键数据</text>
+      <text>实时状态</text>
+    </view>
+    <view class="cells inset fade-in">
+      <view class="cell">
+        <image class="cell-icon" src="/assets/icons/battery.png"></image>
+        <view class="cell-bd">估算可用容量<text class="cell-desc">基于 TeslaMate 充电数据</text></view>
+        <view class="cell-ft num">{{vehicle.capacity}}</view>
+      </view>
+      <view class="cell">
+        <image class="cell-icon" src="/assets/icons/road.png"></image>
+        <view class="cell-bd">最大续航<text class="cell-desc">按当前电量外推</text></view>
+        <view class="cell-ft num">{{vehicle.maxRange}}</view>
+      </view>
+      <view class="cell">
+        <image class="cell-icon" src="/assets/icons/gauge.png"></image>
+        <view class="cell-bd">累计里程<text class="cell-desc">总行驶距离</text></view>
+        <view class="cell-ft num">{{vehicle.odometer}}</view>
+      </view>
+      <view class="cell access" hover-class="cell-hover" bindtap="openUpdate" aria-role="button">
+        <image class="cell-icon" src="/assets/icons/chip.png"></image>
+        <view class="cell-bd">
+          系统版本 <text wx:if="{{vehicle.hasUpdate}}" class="badge-dot">有更新</text>
+          <text class="cell-desc">{{vehicle.updateTitle}}</text>
+        </view>
+        <view class="cell-ft num">{{vehicle.software}}</view>
+      </view>
+    </view>
+  </block>
+</view>

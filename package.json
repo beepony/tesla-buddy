@@ -1,6 +1,6 @@
 {
   "name": "tesla-companion",
-  "version": "1.6.1",
+  "version": "2.0.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -8,7 +8,7 @@
     "start": "node --env-file=.env apps/api/src/server.mjs",
     "ipa": "node scripts/build-ipa.mjs",
     "release": "node scripts/publish-release.mjs",
-    "test": "node --test apps/api/test/*.test.mjs"
+    "test": "node --test apps/api/test/*.test.mjs apps/miniprogram/test/*.test.mjs"
   },
   "engines": {
     "node": ">=22.0.0"

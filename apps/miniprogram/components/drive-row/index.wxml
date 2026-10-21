@@ -1,0 +1,16 @@
+<view class="row" hover-class="cell-hover" bindtap="open" wx:if="{{view}}">
+  <view class="route">
+    <view class="dot start"></view>
+    <text class="place ellipsis">{{view.start}}</text>
+    <text class="arrow">→</text>
+    <view class="dot end"></view>
+    <text class="place ellipsis">{{view.end}}</text>
+    <view class="chevron"></view>
+  </view>
+  <view class="time">{{view.time}}</view>
+  <view class="metrics">
+    <view class="metric"><view class="metric-value num">{{view.energy}}</view><view class="metric-label">本次耗电</view></view>
+    <view class="metric"><view class="metric-value num">{{view.consumption}}</view><view class="metric-label">平均能耗</view></view>
+    <view class="metric"><view class="metric-value num">{{view.distance}}</view><view class="metric-label">行驶距离</view></view>
+  </view>
+</view>

@@ -1,0 +1,4 @@
+.gap { height: 24rpx; }
+.map-wrap { position: relative; padding: 0; overflow: hidden; }
+.map { width: 100%; height: 760rpx; }
+.map-badge { position: absolute; top: 20rpx; left: 20rpx; padding: 10rpx 22rpx; border-radius: 28rpx; background: rgba(255, 255, 255, 0.92); color: rgba(0, 0, 0, 0.9); font-size: 24rpx; font-weight: 600; }

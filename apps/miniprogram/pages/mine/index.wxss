@@ -1,0 +1,4 @@
+.profile { display: flex; align-items: center; gap: 28rpx; padding: 48rpx 32rpx; background: var(--card); }
+.logo { width: 112rpx; height: 112rpx; border-radius: 16rpx; }
+.profile-name { font-size: 40rpx; font-weight: 600; margin-bottom: 4rpx; }
+.footer { text-align: center; margin-top: 64rpx; }

@@ -1,0 +1,14 @@
+<template name="period-summary">
+  <view class="summary">
+    <view class="summary-head">
+      <text class="bold">{{title}}</text>
+      <text class="muted small">{{count}}</text>
+    </view>
+    <view class="metrics">
+      <view class="metric" wx:for="{{metrics}}" wx:key="label">
+        <view class="metric-value num">{{item.value}}</view>
+        <view class="metric-label">{{item.label}}</view>
+      </view>
+    </view>
+  </view>
+</template>
